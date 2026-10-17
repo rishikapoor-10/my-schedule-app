@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MBA Schedule & Mess Planner • PGDM Term 05</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
+                  radial-gradient(circle at 85% 85%, rgba(217, 119, 6, 0.05) 0%, transparent 45%),
+                  #070a11;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glass-card:hover {
+      border-color: rgba(99, 102, 241, 0.25);
+    }
+    .glass-nav {
+      background: rgba(11, 15, 25, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #070a11; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .glow-accent {
+      box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.25);
+    }
+    .amber-glow {
+      box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.2);
+    }
+  </style>
+</head>
+<body class="text-slate-100 font-sans min-h-screen flex antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Sidebar Navigation -->
+  <aside class="w-72 border-r border-slate-800/60 bg-[#0a0f1d]/95 backdrop-blur-xl flex flex-col fixed inset-y-0 z-40 transition-all duration-300 md:static -translate-x-full md:translate-x-0" id="sidebar">
+    <div class="p-6 border-b border-slate-800/60 flex items-center justify-between">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-amber-500 flex items-center justify-center shadow-lg shadow-indigo-600/30 ring-1 ring-white/20">
+          <i class="fa-solid fa-graduation-cap text-white text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
+            Chronos
+            <span class="text-[10px] uppercase font-mono tracking-widest px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">MBA</span>
+          </h1>
+          <p class="text-[11px] text-slate-400 font-medium tracking-wide">PGDM Term-05 Planner</p>
+        </div>
+      </div>
+      <button class="md:hidden text-slate-400 hover:text-white p-1 rounded-lg" onclick="toggleSidebar()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Navigation links -->
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+      <div class="px-3 pb-2 pt-1 text-[10px] font-bold tracking-widest text-slate-500 uppercase">Dashboard & Schedule</div>
+
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-white bg-indigo-600/15 text-indigo-300 border border-indigo-500/25 shadow-sm">
+        <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+        <span>Dashboard Hub</span>
+      </button>
+
+      <button onclick="switchTab('schedule')" id="nav-schedule" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/40">
+        <i class="fa-solid fa-calendar-check w-4 text-center text-indigo-400"></i>
+        <span>My Section Schedule</span>
+      </button>
+
+      <button onclick="switchTab('mess')" id="nav-mess" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/40">
+        <i class="fa-solid fa-bowl-rice w-4 text-center text-amber-400"></i>
+        <span>Mess & Bowld Over Menu</span>
+      </button>
+
+      <button onclick="switchTab('upload')" id="nav-upload" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/40">
+        <i class="fa-solid fa-file-arrow-up w-4 text-center text-emerald-400"></i>
+        <span>Upload CSV / Excel</span>
+      </button>
+
+      <div class="px-3 pb-2 pt-4 text-[10px] font-bold tracking-widest text-slate-500 uppercase">Academics & Tasks</div>
+
+      <button onclick="switchTab('subjects')" id="nav-subjects" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/40">
+        <i class="fa-solid fa-book-bookmark w-4 text-center text-violet-400"></i>
+        <span>My Subjects & Sections</span>
+      </button>
+
+      <button onclick="switchTab('tasks')" id="nav-tasks" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/40">
+        <i class="fa-solid fa-list-check w-4 text-center text-rose-400"></i>
+        <span>Tasks & Case Prep</span>
+      </button>
+    </nav>
+
+    <!-- User Section Badge Roster -->
+    <div class="p-4 mx-3 mb-4 rounded-2xl glass-card border border-slate-800/80">
+      <div class="flex items-center justify-between text-slate-400 mb-2.5">
+        <span class="font-extrabold text-[10px] uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span> Section Roster
+        </span>
+        <span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 text-[10px] font-mono border border-indigo-500/20">Term 05</span>
+      </div>
+      <div class="space-y-1.5 text-[11px]">
+        <div class="flex items-center justify-between text-slate-300">
+          <span class="truncate">MGT</span>
+          <span class="font-bold text-amber-400 font-mono bg-amber-400/10 px-1.5 py-0.5 rounded">Sec 1</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-300">
+          <span class="truncate">NAB</span>
+          <span class="font-bold text-rose-400 font-mono bg-rose-400/10 px-1.5 py-0.5 rounded">Sec 1</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-300">
+          <span class="truncate">Mkt Analytics</span>
+          <span class="font-bold text-blue-400 font-mono bg-blue-400/10 px-1.5 py-0.5 rounded">Sec 2</span>
+        </div>
+        <div class="flex items-center justify-between text-slate-300">
+          <span class="truncate">IT for Managers</span>
+          <span class="font-bold text-emerald-400 font-mono bg-emerald-400/10 px-1.5 py-0.5 rounded">Sec 2</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile Overlay -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+  <!-- Main View Area -->
+  <main class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-20 glass-nav px-6 md:px-8 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white p-2 -ml-2 rounded-xl bg-slate-900/60 border border-slate-800">
+          <i class="fa-solid fa-bars text-base"></i>
+        </button>
+        <div>
+          <h2 id="header-greeting" class="text-lg md:text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>Good Day!</span>
+          </h2>
+          <p id="header-date" class="text-xs text-slate-400 font-medium">Loading date...</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <button onclick="switchTab('upload')" class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 rounded-xl transition hover:border-slate-600">
+          <i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i>
+          <span class="hidden sm:inline">Upload Timetable</span>
+        </button>
+
+        <button onclick="openModal('addCustomModal')" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 rounded-xl glow-accent transition active:scale-95 shadow-md shadow-indigo-600/30">
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>Add Class / Note</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Sections -->
+    <div class="p-6 md:p-8 space-y-7 max-w-7xl w-full mx-auto">
+
+      <!-- ================= SECTION 1: DASHBOARD ================= -->
+      <section id="tab-dashboard" class="tab-page space-y-7">
+        <!-- Hero Header -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-950/70 via-slate-900/90 to-slate-900/80 border border-indigo-500/20 p-7 md:p-9 shadow-2xl">
+          <div class="relative z-10 max-w-2xl">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 mb-3.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Term-05 Live Timetable & Mess Menu
+            </span>
+            <h3 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">Welcome to your MBA Command Center</h3>
+            <p class="text-slate-300 text-xs md:text-sm mt-2.5 leading-relaxed font-normal">
+              Filtered specifically for your enrolled sections (<span class="text-amber-300 font-semibold">MGT Sec 1</span>, <span class="text-rose-300 font-semibold">NAB Sec 1</span>, <span class="text-blue-300 font-semibold">Mkt Analytics Sec 2</span>, <span class="text-emerald-300 font-semibold">IT for Managers Sec 2</span>). Conflicting sections are omitted.
+            </p>
+          </div>
+          <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute top-0 right-1/4 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        </div>
+
+        <!-- 4 Stat Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="glass-card rounded-2xl p-5 transition-all">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-[11px] uppercase tracking-wider font-bold">Week Classes</span>
+              <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                <i class="fa-solid fa-graduation-cap text-xs"></i>
+              </div>
+            </div>
+            <div class="text-3xl font-extrabold text-white tracking-tight" id="stat-total-classes">0</div>
+            <p class="text-[11px] text-indigo-400 mt-1 font-medium">Filtered to your sections</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 transition-all">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-[11px] uppercase tracking-wider font-bold">Today's Lectures</span>
+              <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <i class="fa-regular fa-clock text-xs"></i>
+              </div>
+            </div>
+            <div class="text-3xl font-extrabold text-white tracking-tight" id="stat-today-classes">0</div>
+            <p class="text-[11px] text-slate-400 mt-1 font-medium" id="stat-today-day-label">Classes on schedule</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 transition-all amber-glow">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-[11px] uppercase tracking-wider font-bold">Bowld Over Special</span>
+              <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                <i class="fa-solid fa-bowl-food text-xs"></i>
+              </div>
+            </div>
+            <div class="text-sm font-bold text-amber-300 truncate mt-2" id="stat-bowld-special">Loading...</div>
+            <p class="text-[11px] text-slate-400 mt-1 font-medium">Today's alternate meal</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 transition-all">
+            <div class="flex items-center justify-between text-slate-400 mb-2">
+              <span class="text-[11px] uppercase tracking-wider font-bold">Today's Dinner</span>
+              <div class="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                <i class="fa-solid fa-utensils text-xs"></i>
+              </div>
+            </div>
+            <div class="text-sm font-bold text-slate-200 truncate mt-2" id="stat-dinner-special">Loading...</div>
+            <p class="text-[11px] text-slate-400 mt-1 font-medium">Delhicious & Mess dinner</p>
+          </div>
+        </div>
+
+        <!-- 2 Column View: Schedule Timeline & Mess Preview -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left: Week Lecture Feed -->
+          <div class="lg:col-span-2 glass-card rounded-3xl p-6 md:p-7 shadow-xl">
+            <div class="flex items-center justify-between mb-5 pb-3.5 border-b border-slate-800/80">
+              <div>
+                <h4 class="font-extrabold text-base text-white flex items-center gap-2.5">
+                  <i class="fa-solid fa-calendar-days text-indigo-400"></i> Weekly Lecture Schedule
+                </h4>
+                <p class="text-xs text-slate-400 mt-0.5">Showing only your enrolled sections</p>
+              </div>
+              <button onclick="switchTab('schedule')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold px-2.5 py-1 rounded-lg hover:bg-indigo-500/10 transition">
+                View Full &rarr;
+              </button>
+            </div>
+            <div id="dashboard-schedule-list" class="space-y-3">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Right Column: Today's Mess & Quick Tasks -->
+          <div class="space-y-6">
+            <!-- Mess Card Today -->
+            <div class="glass-card rounded-3xl p-6 relative overflow-hidden shadow-xl">
+              <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80">
+                <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
+                  <i class="fa-solid fa-utensils text-amber-400"></i> Mess Today
+                </h4>
+                <button onclick="switchTab('mess')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold px-2 py-0.5 rounded-lg hover:bg-indigo-500/10 transition">
+                  Full Week &rarr;
+                </button>
+              </div>
+              <div id="dashboard-today-mess-content" class="space-y-3.5 text-xs">
+                <!-- Rendered via JS -->
+              </div>
+            </div>
+
+            <!-- Tasks Card -->
+            <div class="glass-card rounded-3xl p-6 shadow-xl">
+              <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80">
+                <h4 class="font-extrabold text-sm text-white flex items-center gap-2">
+                  <i class="fa-solid fa-list-check text-rose-400"></i> Priority Tasks
+                </h4>
+                <button onclick="switchTab('tasks')" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold px-2 py-0.5 rounded-lg hover:bg-indigo-500/10 transition">
+                  Manage &rarr;
+                </button>
+              </div>
+              <div id="dashboard-quick-tasks" class="space-y-2.5">
+                <!-- Rendered via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 2: MY COURSE SCHEDULE ================= -->
+      <section id="tab-schedule" class="tab-page hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-extrabold text-white tracking-tight">My Section Schedule (Term-05)</h3>
+            <p class="text-xs md:text-sm text-slate-400 mt-0.5">Strictly filtered to your enrolled sections. Click any chip below to isolate a subject.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="switchTab('upload')" class="px-3.5 py-2 text-xs font-semibold bg-emerald-600/15 border border-emerald-500/25 hover:bg-emerald-600/25 text-emerald-300 rounded-xl transition">
+              <i class="fa-solid fa-file-excel mr-1"></i> Upload New Timetable
+            </button>
+            <button onclick="openModal('addCustomModal')" class="px-3.5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md shadow-indigo-600/30 transition">
+              <i class="fa-solid fa-plus mr-1"></i> Add Session
+            </button>
+          </div>
+        </div>
+
+        <!-- Subject Filter Chips -->
+        <div class="flex flex-wrap gap-2 pt-1" id="subject-filter-chips">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Grouped by Date Sessions -->
+        <div id="detailed-schedule-container" class="space-y-5">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- ================= SECTION 3: MESS & BOWL MENU ================= -->
+      <section id="tab-mess" class="tab-page hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-xl font-extrabold text-white tracking-tight">Weekly Mess & Bowld Over Menu</h3>
+            <p class="text-xs md:text-sm text-slate-400 mt-0.5">Complete menu breakdown including Breakfast, Lunch, Evening Snacks, Dinner & Bowl Specials.</p>
+          </div>
+          <div class="flex overflow-x-auto gap-1 bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl" id="mess-day-tabs">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <div id="mess-day-view-container" class="space-y-6">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Full Week Table Preview -->
+        <div class="glass-card rounded-3xl overflow-hidden mt-8 shadow-xl">
+          <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/40">
+            <h4 class="font-bold text-sm text-white flex items-center gap-2">
+              <i class="fa-solid fa-table-list text-amber-400"></i> Full Week Bowl Menu Quick Reference
+            </h4>
+            <span class="text-xs text-amber-400 font-semibold px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20">Bowld Over Specials</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-950/70 text-slate-400 uppercase tracking-wider text-[10px] font-bold border-b border-slate-800">
+                <tr>
+                  <th class="p-3.5">Day</th>
+                  <th class="p-3.5">Breakfast Bowl</th>
+                  <th class="p-3.5">Lunch Bowl Special</th>
+                  <th class="p-3.5">Dinner Bowl / Delhicious</th>
+                </tr>
+              </thead>
+              <tbody id="bowl-summary-tbody" class="divide-y divide-slate-800/60 font-medium">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 4: UPLOAD CSV / EXCEL ================= -->
+      <section id="tab-upload" class="tab-page hidden space-y-6">
+        <div>
+          <h3 class="text-xl font-extrabold text-white tracking-tight">Upload Timetable (Excel / CSV)</h3>
+          <p class="text-xs md:text-sm text-slate-400 mt-0.5">Drop in your raw college schedule file (.xlsx, .xls, .csv). The system automatically isolates only your 6 target subjects and enrolled sections.</p>
+        </div>
+
+        <!-- Dropzone -->
+        <div class="border-2 border-dashed border-slate-700/80 hover:border-indigo-500/80 rounded-3xl p-8 md:p-12 text-center bg-slate-900/40 transition cursor-pointer glass-card" onclick="document.getElementById('timetableFileInput').click()">
+          <input type="file" id="timetableFileInput" accept=".csv, .xlsx, .xls" class="hidden" onchange="handleFileUpload(event)" />
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-600/15 border border-indigo-500/25 flex items-center justify-center text-indigo-400 text-2xl mb-4 shadow-lg shadow-indigo-600/20">
+            <i class="fa-solid fa-file-excel"></i>
+          </div>
+          <h4 class="text-base font-bold text-white mb-1.5">Click to browse or drop your Timetable file here</h4>
+          <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">Supports .CSV, .XLSX, and .XLS format like your Term-05 Weekly Time Table</p>
+          <div class="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 text-xs text-indigo-300 border border-slate-700/80">
+            <i class="fa-solid fa-filter text-[11px]"></i> Auto-filters strictly to your section rules
+          </div>
+        </div>
+
+        <!-- Parse Preview Box -->
+        <div id="upload-status-box" class="hidden p-6 rounded-3xl glass-card space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+              <div>
+                <h5 class="text-sm font-bold text-white" id="upload-filename">Parsed Successfully</h5>
+                <p class="text-xs text-slate-400" id="upload-counts">Found matching lecture slots</p>
+              </div>
+            </div>
+            <button onclick="applyUploadedSchedule()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-md transition">
+              Apply to My Schedule
+            </button>
+          </div>
+          <div id="upload-preview-list" class="max-h-60 overflow-y-auto space-y-2 text-xs">
+            <!-- Items rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Section Rules Card -->
+        <div class="p-6 rounded-3xl glass-card space-y-3.5">
+          <h5 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-indigo-400"></i> Active Section Rules Applied
+          </h5>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 text-slate-300">
+              <span class="font-bold text-amber-300 block mb-1">Managing Global Teams</span>
+              Enrolled: <span class="text-white font-semibold">Section 1</span>
+              <p class="text-[11px] text-slate-500 mt-0.5">Section 2 slots ignored</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 text-slate-300">
+              <span class="font-bold text-rose-300 block mb-1">Negotiation and Bargaining</span>
+              Enrolled: <span class="text-white font-semibold">Section 1</span>
+              <p class="text-[11px] text-slate-500 mt-0.5">Section 2 slots ignored</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 text-slate-300">
+              <span class="font-bold text-blue-300 block mb-1">Marketing Analytics</span>
+              Enrolled: <span class="text-white font-semibold">Section 2</span>
+              <p class="text-[11px] text-slate-500 mt-0.5">Section 1 slots ignored</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 text-slate-300">
+              <span class="font-bold text-emerald-300 block mb-1">IT for Managers</span>
+              Enrolled: <span class="text-white font-semibold">Section 2</span>
+              <p class="text-[11px] text-slate-500 mt-0.5">Section 1 slots ignored</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 5: MY SUBJECTS & SECTIONS ================= -->
+      <section id="tab-subjects" class="tab-page hidden space-y-6">
+        <div>
+          <h3 class="text-xl font-extrabold text-white tracking-tight">My Subjects & Assigned Sections</h3>
+          <p class="text-xs md:text-sm text-slate-400 mt-0.5">Curriculum catalog with your assigned section details.</p>
+        </div>
+
+        <div id="subjects-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+      <!-- ================= SECTION 6: TASKS & PREP ================= -->
+      <section id="tab-tasks" class="tab-page hidden space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-extrabold text-white tracking-tight">Course Tasks & Case Study Prep</h3>
+            <p class="text-xs md:text-sm text-slate-400 mt-0.5">Assignment deadlines, readings, and group submissions.</p>
+          </div>
+          <button onclick="openModal('taskModal')" class="px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-md shadow-indigo-600/30 transition">
+            <i class="fa-solid fa-plus mr-1.5"></i> Add Task
+          </button>
+        </div>
+
+        <div class="glass-card rounded-3xl overflow-hidden">
+          <div id="tasks-full-list" class="divide-y divide-slate-800/80 p-3">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal: Add Custom Class/Session -->
+  <div id="addCustomModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card bg-slate-900/95 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h4 class="font-extrabold text-white text-base">Add Course Session</h4>
+        <button onclick="closeModal('addCustomModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="customSessionForm" onsubmit="saveCustomSession(event)" class="space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Subject</label>
+          <select id="csSubject" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500">
+            <option value="Managing Global Teams">Managing Global Teams (Section 1)</option>
+            <option value="Negotiation and Bargaining">Negotiation and Bargaining (Section 1)</option>
+            <option value="Marketing Analytics">Marketing Analytics (Section 2)</option>
+            <option value="IT for Managers">IT for Managers (Section 2)</option>
+            <option value="Scaling New Ventures">Scaling New Ventures</option>
+            <option value="Designing Employer Branding Campaigns">Designing Employer Branding Campaigns</option>
+            <option value="Marketing Metrics">Marketing Metrics</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Date</label>
+            <input type="date" id="csDate" required class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Time Range</label>
+            <input type="text" id="csTime" required placeholder="e.g. 19:30 - 21:00" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Venue / Hall</label>
+            <input type="text" id="csVenue" placeholder="Shri Shankaran Hall" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Instructor / Section</label>
+            <input type="text" id="csInstructor" placeholder="Prof. C B Mohan" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:border-indigo-500" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('addCustomModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md">Save Session</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Task -->
+  <div id="taskModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card bg-slate-900/95 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h4 class="font-extrabold text-white text-base">New Subject Task</h4>
+        <button onclick="closeModal('taskModal')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="taskForm" onsubmit="saveTask(event)" class="space-y-4 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Subject</label>
+          <select id="taskSubject" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-indigo-500">
+            <option value="Managing Global Teams">Managing Global Teams (Sec 1)</option>
+            <option value="Negotiation and Bargaining">Negotiation and Bargaining (Sec 1)</option>
+            <option value="Marketing Analytics">Marketing Analytics (Sec 2)</option>
+            <option value="IT for Managers">IT for Managers (Sec 2)</option>
+            <option value="Scaling New Ventures">Scaling New Ventures</option>
+            <option value="Designing Employer Branding Campaigns">Designing Employer Branding Campaigns</option>
+            <option value="Marketing Metrics">Marketing Metrics</option>
+            <option value="General MBA">General MBA Prep</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Task Title / Assignment</label>
+          <input type="text" id="taskTitle" required placeholder="e.g. Case Analysis: Cross-Border Teams" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:border-indigo-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Due Date</label>
+            <input type="date" id="taskDueDate" required class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Priority</label>
+            <select id="taskPriority" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:border-indigo-500">
+              <option value="High">High</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('taskModal')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Application Script -->
+  <script>
+    const USER_SECTIONS = {
+      "Managing Global Teams": "Section 1",
+      "Negotiation and Bargaining": "Section 1",
+      "Marketing Analytics": "Section 2",
+      "IT for Managers": "Section 2"
+    };
+
+    const ALLOWED_SUBJECTS = [
+      "Scaling New Ventures",
+      "Designing Employer Branding Campaigns",
+      "Marketing Analytics",
+      "Marketing Metrics",
+      "Managing Global Teams",
+      "Negotiation and Bargaining",
+      "IT for Managers"
+    ];
+
+    const SUBJECT_THEMES = {
+      "Scaling New Ventures": { badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30", icon: "fa-rocket" },
+      "Designing Employer Branding Campaigns": { badge: "bg-purple-500/15 text-purple-300 border-purple-500/30", icon: "fa-bullhorn" },
+      "Marketing Analytics": { badge: "bg-blue-500/15 text-blue-300 border-blue-500/30", icon: "fa-chart-simple" },
+      "Marketing Metrics": { badge: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30", icon: "fa-calculator" },
+      "Managing Global Teams": { badge: "bg-amber-500/15 text-amber-300 border-amber-500/30", icon: "fa-earth-americas" },
+      "Negotiation and Bargaining": { badge: "bg-rose-500/15 text-rose-300 border-rose-500/30", icon: "fa-handshake" },
+      "IT for Managers": { badge: "bg-teal-500/15 text-teal-300 border-teal-500/30", icon: "fa-laptop-code" },
+      "General MBA": { badge: "bg-slate-800 text-slate-300 border-slate-700", icon: "fa-graduation-cap" }
+    };
+
+    const MESS_WEEK_MENU = {
+      "Monday": {
+        date: "12-Oct",
+        breakfast: {
+          items: "Idli, Sambar, Vegetable khichdi, Coconut Chutney, Corn Flakes, Milk, Watermelon, Tea, Coffee, Omelette, Three Bean Salad",
+          bowldOver: "Fruit Bowl"
+        },
+        lunch: {
+          items: "Pudhina Butter Milk, Kimchi Salad, Butter chapati, Steamed Rice, Nei pappu (dal), Vendakkai karakulambu (bhindi), Karamani thoran, Sabudana Payasam, Rasam, Papad & Pickle",
+          bowldOver: "Sabudana vada and chutney (4 per person)",
+          navratriSpecial: "Sabudana vada and chutney (4 per person)"
+        },
+        snacks: {
+          items: "Tea, Coffee, Bhelpuri"
+        },
+        dinner: {
+          items: "Lemonade, Kosambari Salad, Chapati, Steamed Rice, Dal Panchmel, Chamandhi, Gobi capsicum masala, Fryums & Pickle, Rasam",
+          bowldOver: "Poori and potato masala (3 poori)",
+          delhicious: "Paneer kathi roll (1 no) / Veg Roll (1 no)"
+        }
+      },
+      "Tuesday": {
+        date: "13-Oct",
+        breakfast: {
+          items: "Pesarattu, Coconut Chutney, Aloo Paratha, Curd & pickle, Bread, Butter & Jam, Watermelon, Tea, Coffee, Boiled eggs, Sprouts Salad",
+          bowldOver: "Aloo Sandwich and Mango Sunrise"
+        },
+        lunch: {
+          items: "Curd, Green Salad, Butter chapati, Steamed Rice, Channa dal tadka, Ridge gourd Masala, Aloo mattar masala, Rasam, Papad & Pickle",
+          bowldOver: "Khichdi and cucumber raita (400 gms)"
+        },
+        snacks: {
+          items: "Tea, Coffee, Peanut Chaat"
+        },
+        dinner: {
+          items: "Rosemilk, Tossed salad, Tamarind rice, Podi Uttapam & plain Uttapam, Sambar & Tomato Chutney, Chole masala, Jeera rice, Papad & Pickle, Icecream",
+          bowldOver: "Two Set Dosa with sambar and tomato chutney and one vada",
+          delhicious: "Aloo Paratha & curd (2 no) / Set Dosa Chicken Curry (2 dosa, 120 gms gravy)"
+        }
+      },
+      "Wednesday": {
+        date: "14-Oct",
+        breakfast: {
+          items: "Semiya Upma, Coconut Chutney, Besan Chilla, Mint Chutney, Oats, Milk, Banana, Tea, Coffee, Boiled eggs, Black Chana Sundal",
+          bowldOver: "Fruit Bowl"
+        },
+        lunch: {
+          items: "NAVRATRI SPECIAL LUNCH: Chaas, Sev tamatar, Thepla, Steamed Rice, Kadhi khichdi, Potato curry, Basundhi (1 per person), Pickle",
+          bowldOver: "Sabudana khichdi and curd (400 gms)",
+          navratriSpecial: "Sabudana khichdi and curd (400 gms)"
+        },
+        snacks: {
+          items: "Tea, Coffee, Aloo chaat"
+        },
+        dinner: {
+          items: "Tiger salad, Butter chapati, Steamed Rice, Dal fry, Paneer Lababdar / Butter chicken, Veg jalfrezi, Fryums & Pickle",
+          bowldOver: "Idli, sambar, chutney (3 nos)",
+          delhicious: "Kerala Parotta & Paneer Curry / Chicken Curry (2 per person, 120 gms gravy)"
+        }
+      },
+      "Thursday": {
+        date: "15-Oct",
+        breakfast: {
+          items: "Rava Khichdi, Coconut Chutney, Poori, Aloo Subzi, Bread, Butter & Jam, Banana, Tea, Coffee, Omelette, Chana Sundal",
+          bowldOver: "Coleslaw Sandwich and Cold Coffee"
+        },
+        lunch: {
+          items: "Curd, Sprout Salad, Chapati, Steamed Rice, Dal maharani, Aloo palak, Tindli chatpata, Mysore Pak (1 per person), Papad & Pickle",
+          bowldOver: "Poha & sev & onion (400 gms)"
+        },
+        snacks: {
+          items: "Tea, Coffee, Three Bean Sundal"
+        },
+        dinner: {
+          items: "Fruit Punch, Green Salad, Butter chapati, Steamed Rice, Dal Makhani, Cabbage mattar masala, Raw Banana Chatpatta, Fryums & Pickle, Rasam, Kheer",
+          bowldOver: "Besan chilla with mint chutney (2 nos)",
+          delhicious: "Holiday Special"
+        }
+      },
+      "Friday": {
+        date: "16-Oct",
+        breakfast: {
+          items: "Thalippu Idli, Sambar & Chutney, Mix Veg Paratha, Curd & pickle, Chocos, Hot & Cold Milk, Watermelon, Tea, Coffee, Boiled eggs, Peanut Sundal",
+          bowldOver: "Fruit Bowl"
+        },
+        lunch: {
+          items: "Neer mor, Crispy medu vada (1 per person), Steamed rice, Arachuvitta sambar, Milagu jeera rasam, Mix veg poriyal, Snakegourd kuttu, Okra stir fry, Semiya payasam, Papad & Pickle",
+          bowldOver: "Sabudana thalipeeth with coconut chutney (2 per person)",
+          navratriSpecial: "Sabudana thalipeeth with coconut chutney"
+        },
+        snacks: {
+          items: "Tea, Coffee, Veg Mayo Sandwich"
+        },
+        dinner: {
+          items: "Pudhina Butter Milk, Kosambari Salad, Butter chapati, Steamed Rice, Lobiya dal, Paneer tikka masala / Egg tikka masala, Aloo bhujiya, Pappu Podi (Dal Powder), Rasam, Papad & Pickle",
+          bowldOver: "Sweet potato patties with cucumber raitha",
+          delhicious: "Veg Roll (1 no)"
+        }
+      },
+      "Saturday": {
+        date: "17-Oct",
+        breakfast: {
+          items: "Set dosa, Sambar & Coconut Chutney, Poha, Sev & onion, Cornflakes, Milk, Banana, Tea, Coffee, Boiled eggs, Red Beans Salad",
+          bowldOver: "Chutney Sandwich and Cold Coffee"
+        },
+        lunch: {
+          items: "Buttermilk, Kachumber Salad, Butter chapati, Steamed Rice, Dal Ambat, veg kurma, Chow Chow Palya, Semiya Payasam, Papad & Pickle",
+          bowldOver: "Sabudana vada and chutney (4 per person)",
+          navratriSpecial: "Sabudana vada and chutney (4 per person)"
+        },
+        snacks: {
+          items: "Tea, Coffee, Veg burger"
+        },
+        dinner: {
+          items: "Nannari Sarbath, Green Salad, Chapati, Steamed Rice, Dhaba Dal, Malai Kofta, Lauki Matar Masala, Fryums & Pickle, Rasam",
+          bowldOver: "Idli and veg kurma (3 nos)",
+          delhicious: "Idli Chicken Curry (3 per person, 120 gms gravy) / Set Dosa Chicken Curry"
+        }
+      },
+      "Sunday": {
+        date: "18-Oct",
+        breakfast: {
+          items: "Pancake, Honey, Mini Vada (2 per person), Coconut chutney, Watermelon, Tea, Coffee, Omelette, Veg Protein Salad",
+          bowldOver: "Fruit Bowl"
+        },
+        lunch: {
+          items: "Lemon mint cooler, Cucumber Raita, Paneer dum biryani, Chicken dum biriyani, Moong dal payasam, Raw mango pickle",
+          bowldOver: "Sabudhana khichdi and curd (400 gms)",
+          navratriSpecial: "Sabudhana khichdi and curd (400 gms)"
+        },
+        snacks: {
+          items: "Tea, Coffee, Vada (2 per person)"
+        },
+        dinner: {
+          items: "Lassi (No Cardamom), Kachumber Salad, Butter chapati, Steamed Rice, Methi Dal, Cabbage beans masala, Kurkure Bhindi, Fryums & Pickle, Rasam",
+          bowldOver: "Sabudhana thalipeeth with coconut chutney (2 nos)",
+          delhicious: "Masala dosa & vada, sambar and chutney (1 piece each)"
+        }
+      }
+    };
+
+    const SEED_SCHEDULE = [
+      {
+        id: "sch-1",
+        date: "2026-10-12",
+        dayName: "Monday",
+        subject: "Marketing Metrics",
+        slot: "Slot 2",
+        time: "09:15 - 11:15",
+        venue: "Lake Dal",
+        instructor: "Dr. D. Sriram",
+        section: "Regular",
+        sessionNum: "Session [6]"
+      },
+      {
+        id: "sch-2",
+        date: "2026-10-12",
+        dayName: "Monday",
+        subject: "Scaling New Ventures",
+        slot: "Slot 5",
+        time: "15:45 - 17:15",
+        venue: "Shri Shankaran Hall",
+        instructor: "Dr. Subrat Sarangi",
+        section: "Regular",
+        sessionNum: "Session [4]"
+      },
+      {
+        id: "sch-3",
+        date: "2026-10-13",
+        dayName: "Tuesday",
+        subject: "Managing Global Teams",
+        slot: "Slot 7",
+        time: "19:30 - 21:00",
+        venue: "Shri Shankaran Hall",
+        instructor: "Prof. C B Mohan",
+        section: "Section 1",
+        sessionNum: "Session [3] (Section 1)"
+      },
+      {
+        id: "sch-4",
+        date: "2026-10-14",
+        dayName: "Wednesday",
+        subject: "Scaling New Ventures",
+        slot: "Slot 5",
+        time: "15:45 - 17:15",
+        venue: "Shri Shankaran Hall",
+        instructor: "Dr. Subrat Sarangi",
+        section: "Regular",
+        sessionNum: "Session [5]"
+      },
+      {
+        id: "sch-5",
+        date: "2026-10-14",
+        dayName: "Wednesday",
+        subject: "Managing Global Teams",
+        slot: "Slot 7",
+        time: "19:30 - 21:00",
+        venue: "Shri Shankaran Hall",
+        instructor: "Prof. C B Mohan",
+        section: "Section 1",
+        sessionNum: "Session [4] (Section 1)"
+      },
+      {
+        id: "sch-6",
+        date: "2026-10-15",
+        dayName: "Thursday",
+        subject: "Managing Global Teams",
+        slot: "Slot 6",
+        time: "17:45 - 19:15",
+        venue: "Shri Shankaran Hall",
+        instructor: "Prof. C B Mohan",
+        section: "Section 1",
+        sessionNum: "Session [5] (Section 1)"
+      },
+      {
+        id: "sch-7",
+        date: "2026-10-16",
+        dayName: "Friday",
+        subject: "Marketing Metrics",
+        slot: "Slot 4",
+        time: "14:00 - 15:30",
+        venue: "Lake Dal",
+        instructor: "Dr. D. Sriram",
+        section: "Regular",
+        sessionNum: "Session [7]"
+      },
+      {
+        id: "sch-8",
+        date: "2026-10-16",
+        dayName: "Friday",
+        subject: "Managing Global Teams",
+        slot: "Slot 7",
+        time: "19:30 - 21:00",
+        venue: "Shri Shankaran Hall",
+        instructor: "Prof. C B Mohan",
+        section: "Section 1",
+        sessionNum: "Session [6] (Section 1)"
+      }
+    ];
+
+    const KEY_SCHEDULE = "mba_schedule_v4_refined";
+    const KEY_TASKS = "mba_tasks_v4_refined";
+
+    let scheduleData = JSON.parse(localStorage.getItem(KEY_SCHEDULE) || "null") || SEED_SCHEDULE;
+    let selectedFilterSubject = "All";
+    let activeMessDay = "Monday";
+    let pendingUploadSessions = [];
+
+    let tasksData = JSON.parse(localStorage.getItem(KEY_TASKS) || "null") || [
+      { id: "t-1", subject: "Managing Global Teams", title: "Read HBR Case: Managing Virtual Cross-Border Teams (Sec 1)", dueDate: "2026-10-14", priority: "High", completed: false },
+      { id: "t-2", subject: "Scaling New Ventures", title: "Review Lean Canvas Pitch Deck for Dr. Subrat Sarangi", dueDate: "2026-10-14", priority: "High", completed: false },
+      { id: "t-3", subject: "Marketing Metrics", title: "Calculate CLV and ROMI assignment exercises", dueDate: "2026-10-16", priority: "Medium", completed: false }
+    ];
+
+    function updateGreetingAndDate() {
+      const now = new Date();
+      const hour = now.getHours();
+      let greeting = 'Good evening';
+      if (hour < 12) greeting = 'Good morning';
+      else if (hour < 17) greeting = 'Good afternoon';
+
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateString = now.toLocaleDateString(undefined, options);
+
+      const gEl = document.getElementById('header-greeting');
+      const dEl = document.getElementById('header-date');
+      if (gEl) gEl.innerHTML = `<span>${greeting}!</span>`;
+      if (dEl) dEl.textContent = `Today is ${dateString}`;
+
+      const currentDayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+      if (MESS_WEEK_MENU[currentDayName]) {
+        activeMessDay = currentDayName;
+      }
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-page').forEach(tab => tab.classList.add('hidden'));
+      const activeTab = document.getElementById(`tab-${tabName}`);
+      if (activeTab) activeTab.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.className = 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800/40';
+      });
+      const activeNav = document.getElementById(`nav-${tabName}`);
+      if (activeNav) {
+        activeNav.className = 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-white bg-indigo-600/15 text-indigo-300 border border-indigo-500/25 shadow-sm';
+      }
+
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+
+      renderAll();
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+      }
+    }
+
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove('hidden');
+      if (id === 'addCustomModal') {
+        document.getElementById('csDate').value = new Date().toISOString().split('T')[0];
+      }
+      if (id === 'taskModal') {
+        document.getElementById('taskDueDate').value = new Date().toISOString().split('T')[0];
+      }
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function renderStats() {
+      document.getElementById('stat-total-classes').textContent = scheduleData.length;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayLectures = scheduleData.filter(s => s.date === todayStr);
+      document.getElementById('stat-today-classes').textContent = todayLectures.length;
+
+      const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      const menuToday = MESS_WEEK_MENU[dayOfWeek] || MESS_WEEK_MENU['Wednesday'];
+
+      document.getElementById('stat-bowld-special').textContent = menuToday.lunch.bowldOver || menuToday.breakfast.bowldOver;
+      document.getElementById('stat-dinner-special').textContent = menuToday.dinner.delhicious || menuToday.dinner.bowldOver;
+    }
+
+    function renderDashboard() {
+      const listContainer = document.getElementById('dashboard-schedule-list');
+      const sorted = [...scheduleData].sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+      if (sorted.length === 0) {
+        listContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No lecture sessions recorded for your sections.</div>`;
+      } else {
+        listContainer.innerHTML = sorted.slice(0, 6).map(item => {
+          const theme = SUBJECT_THEMES[item.subject] || { badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30', icon: 'fa-graduation-cap' };
+          return `
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-2xl border border-slate-800/80 bg-slate-900/40 hover:bg-slate-800/50 hover:border-slate-700/80 transition-all gap-3">
+              <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800/90 flex flex-col items-center justify-center text-center shadow-inner">
+                  <span class="text-[9px] font-extrabold uppercase text-indigo-400 tracking-wider">${item.dayName ? item.dayName.substring(0,3) : 'DAY'}</span>
+                  <span class="text-sm font-extrabold text-white">${item.date ? item.date.split('-')[2] : '--'}</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-bold text-white tracking-tight">${item.subject}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full border font-semibold ${theme.badge}">${item.sessionNum || item.slot}</span>
+                    ${item.section && item.section !== 'Regular' ? `<span class="text-[10px] bg-amber-400/10 text-amber-300 border border-amber-400/25 px-1.5 py-0.2 rounded font-mono font-semibold">${item.section}</span>` : ''}
+                  </div>
+                  <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-3 flex-wrap">
+                    <span><i class="fa-regular fa-clock mr-1 text-slate-500"></i>${item.time}</span>
+                    <span><i class="fa-solid fa-location-dot mr-1 text-slate-500"></i>${item.venue}</span>
+                  </p>
+                </div>
+              </div>
+              <div class="text-right text-xs text-slate-400 pl-14 sm:pl-0">
+                <span class="font-medium text-slate-300 bg-slate-800/50 px-2 py-1 rounded-lg border border-slate-800">${item.instructor || ''}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const todayDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+      const messToday = MESS_WEEK_MENU[todayDay] || MESS_WEEK_MENU['Wednesday'];
+      const messBox = document.getElementById('dashboard-today-mess-content');
+
+      messBox.innerHTML = `
+        <div class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1.5">
+          <div class="flex items-center justify-between text-indigo-400 font-bold">
+            <span class="flex items-center gap-1.5"><i class="fa-regular fa-sun text-amber-400"></i> Breakfast</span>
+            <span class="text-[10px] text-slate-400 font-mono">07:30 - 09:30</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed text-[11px] line-clamp-2">${messToday.breakfast.items}</p>
+          <div class="mt-2 text-[11px] text-amber-300 bg-amber-500/10 p-2 rounded-xl border border-amber-500/20 font-medium">
+            <span class="font-bold text-amber-400">Bowl:</span> ${messToday.breakfast.bowldOver}
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1.5">
+          <div class="flex items-center justify-between text-indigo-400 font-bold">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-bowl-food text-emerald-400"></i> Lunch</span>
+            <span class="text-[10px] text-slate-400 font-mono">12:30 - 14:15</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed text-[11px] line-clamp-2">${messToday.lunch.items}</p>
+          <div class="mt-2 text-[11px] text-emerald-300 bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20 font-medium">
+            <span class="font-bold text-emerald-400">Bowl Lunch:</span> ${messToday.lunch.bowldOver}
+          </div>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-1.5">
+          <div class="flex items-center justify-between text-indigo-400 font-bold">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-moon text-violet-400"></i> Dinner</span>
+            <span class="text-[10px] text-slate-400 font-mono">19:30 - 21:30</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed text-[11px] line-clamp-2">${messToday.dinner.items}</p>
+          <div class="mt-2 text-[11px] text-rose-300 bg-rose-500/10 p-2 rounded-xl border border-rose-500/20 font-medium">
+            <span class="font-bold text-rose-400">Delhicious / Bowl:</span> ${messToday.dinner.delhicious || messToday.dinner.bowldOver}
+          </div>
+        </div>
+      `;
+
+      const tasksBox = document.getElementById('dashboard-quick-tasks');
+      const activeTasks = tasksData.filter(t => !t.completed);
+      if (activeTasks.length === 0) {
+        tasksBox.innerHTML = `<div class="text-xs text-slate-500 py-3 text-center">No pending prep tasks.</div>`;
+      } else {
+        tasksBox.innerHTML = activeTasks.slice(0, 3).map(t => `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/90 text-xs hover:border-slate-700 transition">
+            <div class="flex items-center gap-2.5 truncate">
+              <input type="checkbox" onchange="toggleTask('${t.id}')" class="rounded border-slate-700 text-indigo-600 bg-slate-950 cursor-pointer w-4 h-4" />
+              <span class="text-slate-200 truncate font-medium">${t.title}</span>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-md font-semibold text-rose-300 bg-rose-500/15 border border-rose-500/25 ml-2">${t.priority}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderFilterChips() {
+      const container = document.getElementById('subject-filter-chips');
+      const subjects = ["All", ...ALLOWED_SUBJECTS];
+      container.innerHTML = subjects.map(sub => {
+        const isSelected = selectedFilterSubject === sub;
+        const sectionInfo = USER_SECTIONS[sub] ? ` (${USER_SECTIONS[sub]})` : '';
+        return `
+          <button onclick="filterSchedule('${sub}')" class="px-3.5 py-1.5 text-xs font-bold rounded-xl border transition-all ${
+            isSelected ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30' : 'glass-card text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'
+          }">
+            ${sub}${sectionInfo}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function filterSchedule(sub) {
+      selectedFilterSubject = sub;
+      renderFilterChips();
+      renderSchedule();
+    }
+
+    function renderSchedule() {
+      const container = document.getElementById('detailed-schedule-container');
+      let filtered = scheduleData;
+      if (selectedFilterSubject !== "All") {
+        filtered = scheduleData.filter(s => s.subject === selectedFilterSubject);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="p-12 text-center glass-card rounded-3xl text-slate-400 text-xs">
+            <i class="fa-regular fa-calendar-xmark text-3xl mb-2 text-slate-600 block"></i>
+            No lecture slots found for ${selectedFilterSubject} in your section roster.
+          </div>
+        `;
+        return;
+      }
+
+      const groups = {};
+      filtered.forEach(item => {
+        if (!groups[item.date]) groups[item.date] = [];
+        groups[item.date].push(item);
+      });
+
+      const sortedDates = Object.keys(groups).sort();
+
+      container.innerHTML = sortedDates.map(dateKey => {
+        const items = groups[dateKey];
+        const dayLabel = items[0].dayName || '';
+        return `
+          <div class="glass-card rounded-3xl overflow-hidden shadow-xl">
+            <div class="bg-slate-900/80 border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-sm font-extrabold text-white">${dayLabel}</span>
+                <span class="text-xs text-indigo-400 font-mono bg-indigo-500/10 px-2.5 py-0.5 rounded-lg border border-indigo-500/20">${dateKey}</span>
+              </div>
+              <span class="text-xs text-slate-400 font-medium">${items.length} slot${items.length > 1 ? 's' : ''}</span>
+            </div>
+            <div class="divide-y divide-slate-800/60 p-4 space-y-3">
+              ${items.map(slotItem => {
+                const theme = SUBJECT_THEMES[slotItem.subject] || { badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30', icon: 'fa-graduation-cap' };
+                return `
+                  <div class="pt-3.5 first:pt-0 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div class="space-y-1">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-sm font-bold text-white">${slotItem.subject}</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-md border font-semibold ${theme.badge}">${slotItem.sessionNum || slotItem.slot}</span>
+                        ${slotItem.section && slotItem.section !== 'Regular' ? `<span class="text-[10px] bg-amber-400/10 text-amber-300 border border-amber-400/25 px-1.5 py-0.2 rounded font-mono font-semibold">${slotItem.section}</span>` : ''}
+                      </div>
+                      <div class="flex items-center gap-4 text-xs text-slate-400 flex-wrap">
+                        <span><i class="fa-regular fa-clock mr-1 text-slate-500"></i>${slotItem.time}</span>
+                        <span><i class="fa-solid fa-location-dot mr-1 text-slate-500"></i>${slotItem.venue}</span>
+                        <span><i class="fa-solid fa-user-tie mr-1 text-slate-500"></i>${slotItem.instructor}</span>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button onclick="createTaskForSubject('${slotItem.subject}', '${slotItem.date}')" class="px-3 py-1.5 text-xs font-semibold bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl transition border border-slate-700/80" title="Add prep task">
+                        <i class="fa-solid fa-plus mr-1"></i> Add Task
+                      </button>
+                      <button onclick="deleteScheduleItem('${slotItem.id}')" class="p-2 text-slate-500 hover:text-rose-400 text-xs transition rounded-lg hover:bg-slate-800/60" title="Remove slot">
+                        <i class="fa-regular fa-trash-can"></i>
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deleteScheduleItem(id) {
+      scheduleData = scheduleData.filter(s => s.id !== id);
+      localStorage.setItem(KEY_SCHEDULE, JSON.stringify(scheduleData));
+      renderAll();
+    }
+
+    function createTaskForSubject(subjectName, dueDate) {
+      document.getElementById('taskSubject').value = subjectName;
+      document.getElementById('taskDueDate').value = dueDate;
+      openModal('taskModal');
+    }
+
+    function renderMess() {
+      const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const tabContainer = document.getElementById('mess-day-tabs');
+
+      tabContainer.innerHTML = days.map(d => {
+        const isActive = activeMessDay === d;
+        return `
+          <button onclick="selectMessDay('${d}')" class="px-3.5 py-1.5 text-xs font-extrabold rounded-xl transition-all whitespace-nowrap ${
+            isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white'
+          }">
+            ${d.substring(0,3)}
+          </button>
+        `;
+      }).join('');
+
+      const viewContainer = document.getElementById('mess-day-view-container');
+      const data = MESS_WEEK_MENU[activeMessDay] || MESS_WEEK_MENU['Monday'];
+
+      viewContainer.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Breakfast -->
+          <div class="glass-card rounded-3xl p-5 md:p-6 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                <h5 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i class="fa-regular fa-sun text-amber-400"></i> Breakfast
+                </h5>
+                <span class="text-[10px] text-slate-400 font-mono">07:30 - 09:30</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-3 leading-relaxed">${data.breakfast.items}</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25">
+              <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">Bowld Over Breakfast</span>
+              <p class="text-xs font-semibold text-amber-200 mt-0.5">${data.breakfast.bowldOver}</p>
+            </div>
+          </div>
+
+          <!-- Lunch -->
+          <div class="glass-card rounded-3xl p-5 md:p-6 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                <h5 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i class="fa-solid fa-bowl-food text-emerald-400"></i> Lunch
+                </h5>
+                <span class="text-[10px] text-slate-400 font-mono">12:30 - 14:15</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-3 leading-relaxed">${data.lunch.items}</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25">
+              <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Bowld Over Special</span>
+              <p class="text-xs font-semibold text-emerald-200 mt-0.5">${data.lunch.bowldOver}</p>
+            </div>
+          </div>
+
+          <!-- Snacks -->
+          <div class="glass-card rounded-3xl p-5 md:p-6 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                <h5 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i class="fa-solid fa-mug-hot text-indigo-400"></i> Evening Snacks
+                </h5>
+                <span class="text-[10px] text-slate-400 font-mono">17:00 - 18:00</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-3 leading-relaxed">${data.snacks.items}</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25">
+              <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">Evening Refreshment</span>
+              <p class="text-xs font-semibold text-indigo-200 mt-0.5">Tea, Filter Coffee & Daily Snack</p>
+            </div>
+          </div>
+
+          <!-- Dinner -->
+          <div class="glass-card rounded-3xl p-5 md:p-6 flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                <h5 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i class="fa-solid fa-moon text-violet-400"></i> Dinner
+                </h5>
+                <span class="text-[10px] text-slate-400 font-mono">19:30 - 21:30</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-3 leading-relaxed">${data.dinner.items}</p>
+            </div>
+            <div class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25">
+              <span class="text-[10px] font-bold text-rose-400 uppercase tracking-wider block">Bowld / Delhicious Dinner</span>
+              <p class="text-xs font-semibold text-rose-200 mt-0.5">${data.dinner.delhicious || data.dinner.bowldOver}</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const summaryBody = document.getElementById('bowl-summary-tbody');
+      summaryBody.innerHTML = days.map(d => {
+        const item = MESS_WEEK_MENU[d];
+        const isCurrent = d === activeMessDay;
+        return `
+          <tr class="${isCurrent ? 'bg-indigo-950/40 text-white' : 'hover:bg-slate-800/30'}">
+            <td class="p-3.5 font-bold text-indigo-300">${d} <span class="text-[10px] text-slate-500 font-mono">(${item.date})</span></td>
+            <td class="p-3.5 text-slate-300">${item.breakfast.bowldOver}</td>
+            <td class="p-3.5 text-emerald-300">${item.lunch.bowldOver}</td>
+            <td class="p-3.5 text-rose-300">${item.dinner.delhicious || item.dinner.bowldOver}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function selectMessDay(dayName) {
+      activeMessDay = dayName;
+      renderMess();
+    }
+
+    function renderSubjectsGrid() {
+      const grid = document.getElementById('subjects-cards-grid');
+      const subjectDetails = [
+        { name: "Managing Global Teams", code: "MGT-505", faculty: "Prof. C B Mohan", mySection: "Section 1", desc: "Cross-cultural management, virtual team collaboration, conflict negotiation and global leadership." },
+        { name: "Negotiation and Bargaining", code: "NAB-506", faculty: "Faculty Coordinator", mySection: "Section 1", desc: "Distributive & integrative bargaining, BATNA analysis, psychological anchoring and multi-party deal structuring." },
+        { name: "Marketing Analytics", code: "MKA-503", faculty: "Faculty Coordinator", mySection: "Section 2", desc: "Customer segmentation, conjoint analysis, regression models, churn prediction and LTV modeling." },
+        { name: "IT for Managers", code: "ITM-507", faculty: "Faculty Coordinator", mySection: "Section 2", desc: "Enterprise architecture, digital transformation, cloud frameworks, and technology strategy for executives." },
+        { name: "Scaling New Ventures", code: "SNV-501", faculty: "Dr. Subrat Sarangi", mySection: "Enrolled", desc: "Lean startups, business model canvas, growth scaling, venture capital and investor pitch preparation." },
+        { name: "Designing Employer Branding Campaigns", code: "EBC-502", faculty: "Faculty Coordinator", mySection: "Enrolled", desc: "Talent acquisition strategy, employer value proposition (EVP), campaign analytics and internal branding." },
+        { name: "Marketing Metrics", code: "MKM-504", faculty: "Dr. D. Sriram", mySection: "Enrolled", desc: "Return on Marketing Investment (ROMI), Customer Acquisition Cost (CAC), market share dynamics." }
+      ];
+
+      grid.innerHTML = subjectDetails.map(sub => {
+        const theme = SUBJECT_THEMES[sub.name] || { badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30', icon: 'fa-graduation-cap' };
+        const classCount = scheduleData.filter(s => s.subject === sub.name).length;
+        return `
+          <div class="glass-card rounded-3xl p-6 flex flex-col justify-between hover:border-slate-700 transition space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-lg border ${theme.badge}">${sub.code}</span>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-300">${sub.mySection}</span>
+              </div>
+              <h4 class="text-base font-bold text-white leading-snug">${sub.name}</h4>
+              <p class="text-xs text-indigo-400 font-medium mt-1">${sub.faculty}</p>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">${sub.desc}</p>
+            </div>
+            <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+              <button onclick="filterSchedule('${sub.name}'); switchTab('schedule');" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
+                ${classCount} slot${classCount !== 1 ? 's' : ''} &rarr;
+              </button>
+              <button onclick="createTaskForSubject('${sub.name}', new Date().toISOString().split('T')[0])" class="p-1.5 text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-plus"></i> Task
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('tasks-full-list');
+      if (tasksData.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No tasks added yet.</div>`;
+        return;
+      }
+
+      container.innerHTML = tasksData.map(t => {
+        const theme = SUBJECT_THEMES[t.subject] || { badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30' };
+        return `
+          <div class="flex items-center justify-between p-3.5 hover:bg-slate-800/40 rounded-2xl transition">
+            <div class="flex items-center gap-3.5">
+              <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask('${t.id}')" class="w-4 h-4 rounded border-slate-700 text-indigo-600 bg-slate-950 cursor-pointer" />
+              <div>
+                <p class="text-sm font-semibold ${t.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${t.title}</p>
+                <div class="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
+                  <span class="text-[10px] px-2 py-0.5 rounded-full border ${theme.badge}">${t.subject}</span>
+                  <span><i class="fa-regular fa-clock mr-1 text-[11px]"></i>Due: ${t.dueDate}</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="deleteTask('${t.id}')" class="text-slate-500 hover:text-rose-400 p-2 text-xs transition">
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleTask(id) {
+      tasksData = tasksData.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      localStorage.setItem(KEY_TASKS, JSON.stringify(tasksData));
+      renderAll();
+    }
+
+    function deleteTask(id) {
+      tasksData = tasksData.filter(t => t.id !== id);
+      localStorage.setItem(KEY_TASKS, JSON.stringify(tasksData));
+      renderAll();
+    }
+
+    function saveTask(e) {
+      e.preventDefault();
+      const subject = document.getElementById('taskSubject').value;
+      const title = document.getElementById('taskTitle').value.trim();
+      const dueDate = document.getElementById('taskDueDate').value;
+      const priority = document.getElementById('taskPriority').value;
+
+      tasksData.push({
+        id: "t-" + Date.now(),
+        subject,
+        title,
+        dueDate,
+        priority,
+        completed: false
+      });
+
+      localStorage.setItem(KEY_TASKS, JSON.stringify(tasksData));
+      closeModal('taskModal');
+      document.getElementById('taskForm').reset();
+      renderAll();
+    }
+
+    function saveCustomSession(e) {
+      e.preventDefault();
+      const subject = document.getElementById('csSubject').value;
+      const date = document.getElementById('csDate').value;
+      const time = document.getElementById('csTime').value.trim();
+      const venue = document.getElementById('csVenue').value.trim() || 'Classroom';
+      const instructor = document.getElementById('csInstructor').value.trim() || 'Faculty';
+
+      const dObj = new Date(date);
+      const dayName = dObj.toLocaleDateString('en-US', { weekday: 'long' });
+
+      scheduleData.push({
+        id: "sch-" + Date.now(),
+        date,
+        dayName,
+        subject,
+        slot: "Custom",
+        time,
+        venue,
+        instructor,
+        section: USER_SECTIONS[subject] || "Enrolled",
+        sessionNum: "Elective Session"
+      });
+
+      localStorage.setItem(KEY_SCHEDULE, JSON.stringify(scheduleData));
+      closeModal('addCustomModal');
+      document.getElementById('customSessionForm').reset();
+      renderAll();
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      const fileName = file.name;
+      const isCsv = fileName.toLowerCase().endsWith('.csv');
+
+      reader.onload = function(e) {
+        let rows = [];
+        if (isCsv) {
+          const csvText = e.target.result;
+          rows = parseCSV(csvText);
+        } else {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[firstSheetName];
+          rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        }
+        processUploadedRows(rows, fileName);
+      };
+
+      if (isCsv) {
+        reader.readAsText(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    }
+
+    function parseCSV(text) {
+      const lines = text.split(/\r\n|\n/);
+      return lines.map(line => {
+        const result = [];
+        let curr = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"' || char === "'") {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(curr.trim());
+            curr = '';
+          } else {
+            curr += char;
+          }
+        }
+        result.push(curr.trim());
+        return result;
+      });
+    }
+
+    function processUploadedRows(rows, fileName) {
+      pendingUploadSessions = [];
+      let currentDate = '';
+
+      const defaultSlots = {
+        2: "08:00 - 09:30",
+        3: "09:45 - 11:15",
+        4: "11:30 - 13:00",
+        5: "14:00 - 15:30",
+        6: "15:45 - 17:15",
+        7: "17:45 - 19:15",
+        8: "19:30 - 21:00",
+        9: "21:15 - 22:45"
+      };
+
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || row.length === 0) continue;
+
+        const firstCell = String(row[0] || '').trim();
+        if (firstCell.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          currentDate = firstCell;
+        }
+
+        const venueCell = String(row[1] || '').trim();
+
+        for (let c = 2; c < row.length; c++) {
+          const cellText = String(row[c] || '').trim();
+          if (!cellText) continue;
+
+          for (const subjectName of ALLOWED_SUBJECTS) {
+            if (cellText.toLowerCase().includes(subjectName.toLowerCase())) {
+              const requiredSection = USER_SECTIONS[subjectName];
+              if (requiredSection) {
+                const hasSection1 = cellText.toLowerCase().includes("section 1") || cellText.toLowerCase().includes("sec 1") || cellText.toLowerCase().includes("sec-1");
+                const hasSection2 = cellText.toLowerCase().includes("section 2") || cellText.toLowerCase().includes("sec 2") || cellText.toLowerCase().includes("sec-2");
+
+                if (requiredSection === "Section 1" && hasSection2 && !hasSection1) {
+                  continue;
+                }
+                if (requiredSection === "Section 2" && hasSection1 && !hasSection2) {
+                  continue;
+                }
+              }
+
+              const lines = cellText.split('\n');
+              const sessionMatch = lines[0].match(/\[(\d+)\]/);
+              const sessionNum = sessionMatch ? `Session [${sessionMatch[1]}]` : 'Scheduled Session';
+              const instructor = lines.length > 1 ? lines[1].trim() : 'Course Instructor';
+
+              const dObj = new Date(currentDate);
+              const dayName = currentDate ? dObj.toLocaleDateString('en-US', { weekday: 'long' }) : 'Scheduled Day';
+
+              pendingUploadSessions.push({
+                id: "up-" + Date.now() + Math.random().toString(36).substr(2, 4),
+                date: currentDate || new Date().toISOString().split('T')[0],
+                dayName: dayName,
+                subject: subjectName,
+                slot: `Slot ${c - 1}`,
+                time: defaultSlots[c] || "14:00 - 15:30",
+                venue: venueCell || "Campus Hall",
+                instructor: instructor,
+                section: requiredSection || "Enrolled",
+                sessionNum: sessionNum
+              });
+              break;
+            }
+          }
+        }
+      }
+
+      const statusBox = document.getElementById('upload-status-box');
+      const filenameEl = document.getElementById('upload-filename');
+      const countsEl = document.getElementById('upload-counts');
+      const previewList = document.getElementById('upload-preview-list');
+
+      statusBox.classList.remove('hidden');
+      filenameEl.textContent = `Parsed: ${fileName}`;
+      countsEl.textContent = `Found ${pendingUploadSessions.length} slots strictly matching your enrolled sections.`;
+
+      if (pendingUploadSessions.length === 0) {
+        previewList.innerHTML = `<p class="text-amber-400">No slots matching your exact enrolled sections were found in this file.</p>`;
+      } else {
+        previewList.innerHTML = pendingUploadSessions.map(s => `
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+            <div>
+              <span class="font-bold text-white">${s.subject}</span> &bull; <span class="text-indigo-400">${s.date} (${s.time})</span>
+              <p class="text-[11px] text-slate-400">${s.venue} &bull; ${s.instructor} &bull; <span class="text-amber-300 font-semibold">${s.section}</span></p>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Enrolled Section</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function applyUploadedSchedule() {
+      if (pendingUploadSessions.length > 0) {
+        scheduleData = pendingUploadSessions;
+        localStorage.setItem(KEY_SCHEDULE, JSON.stringify(scheduleData));
+        alert(`Success! Updated schedule with ${pendingUploadSessions.length} sessions matching your sections.`);
+        switchTab('schedule');
+      }
+    }
+
+    function renderAll() {
+      renderStats();
+      renderDashboard();
+      renderFilterChips();
+      renderSchedule();
+      renderMess();
+      renderSubjectsGrid();
+      renderTasks();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateGreetingAndDate();
+      renderAll();
+    });
+  </script>
+</body>
+</html>
