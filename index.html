@@ -322,10 +322,24 @@
       <section id="tab-schedule" class="tab-page hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h3 class="text-xl font-extrabold text-white tracking-tight">My Section Schedule (Term-05)</h3>
-            <p class="text-xs md:text-sm text-slate-400 mt-0.5">Interactive timetable calendar with visual time blocks, just like Google Calendar.</p>
+            <h3 class="text-xl font-extrabold text-white tracking-tight">Weekly Schedule (Monday to Sunday)</h3>
+            <p class="text-xs md:text-sm text-slate-400 mt-0.5">Interactive timetable calendar with visual time blocks spanning the full 7-day week (Mon–Sun).</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Week Navigation Controls -->
+            <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs">
+              <button onclick="changeWeek(-1)" class="px-2.5 py-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Previous Week">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+              <span id="current-week-label" class="px-3 font-mono font-bold text-indigo-300 select-none">Current Week</span>
+              <button onclick="changeWeek(1)" class="px-2.5 py-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Next Week">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+              <button onclick="resetToCurrentWeek()" class="ml-1 px-2.5 py-1 text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg transition">
+                Today
+              </button>
+            </div>
+
             <!-- View Mode Switcher: Calendar vs List -->
             <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs font-semibold">
               <button onclick="setScheduleViewMode('calendar')" id="view-mode-calendar" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white transition flex items-center gap-1.5 shadow-sm">
@@ -364,7 +378,7 @@
             <h3 class="text-xl font-extrabold text-white tracking-tight">Weekly Mess & Bowld Over Menu</h3>
             <p class="text-xs md:text-sm text-slate-400 mt-0.5">Complete menu breakdown including Breakfast, Lunch, Evening Snacks, Dinner & Bowl Specials.</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <button onclick="openModal('markdownMessModal')" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl transition flex items-center gap-1.5">
               <i class="fa-solid fa-file-pen text-amber-400"></i> Paste Text / Markdown
             </button>
@@ -408,7 +422,7 @@
       <section id="tab-upload" class="tab-page hidden space-y-6">
         <div>
           <h3 class="text-xl font-extrabold text-white tracking-tight">Upload Center (Timetable & Mess Menu)</h3>
-          <p class="text-xs md:text-sm text-slate-400 mt-0.5">Supports Timetables & Mess Menus in <strong>Excel, CSV, PDF, Markdown (.md), or raw text</strong>.</p>
+          <p class="text-xs md:text-sm text-slate-400 mt-0.5">Supports Timetables & Mess Menus in <strong>Excel, CSV, PDF, Markdown (.md), or raw text</strong>. Upload on Thursday or Friday to automatically prepare the upcoming week!</p>
         </div>
 
         <!-- Upload Mode Switcher -->
@@ -429,7 +443,7 @@
               <i class="fa-solid fa-file-excel"></i>
             </div>
             <h4 class="text-base font-bold text-white mb-1.5">Click to browse or drop your Timetable file here</h4>
-            <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">Supports .CSV, .XLSX, .XLS, and Markdown (.md) timetable formats</p>
+            <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">Supports .CSV, .XLSX, .XLS, and Markdown (.md) timetable formats. Also parses combined timetable + mess sheets!</p>
             <div class="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 text-xs text-indigo-300 border border-slate-700/80">
               <i class="fa-solid fa-filter text-[11px]"></i> Auto-filters strictly to your section rules
             </div>
@@ -444,7 +458,7 @@
               <i class="fa-solid fa-file-pdf"></i>
             </div>
             <h4 class="text-base font-bold text-white mb-1.5">Upload Mess Menu (PDF, Markdown, or Excel/CSV)</h4>
-            <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">Got a PDF from the mess committee? Drop it here or upload a markdown/text file.</p>
+            <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">Got a PDF or CSV from the mess committee? Drop it here or upload a markdown/text file.</p>
             <div class="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 text-xs text-amber-300 border border-slate-700/80">
               <i class="fa-solid fa-bolt text-[11px]"></i> Automatically extracts Breakfast, Lunch, Dinner & Bowld Over
             </div>
@@ -707,275 +721,160 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
       "General MBA": { badge: "bg-slate-800 text-slate-300 border-slate-700", barBg: "bg-slate-800 border-slate-700 text-slate-200", icon: "fa-graduation-cap" }
     };
 
-    let MESS_WEEK_MENU = JSON.parse(localStorage.getItem('mba_mess_menu_v5') || 'null') || {
+    // Preloaded Week 5 Mess Menu
+    let MESS_WEEK_MENU = JSON.parse(localStorage.getItem('mba_mess_menu_v6') || 'null') || {
       "Monday": {
-        date: "12-Oct",
-        breakfast: {
-          items: "Idli, Sambar, Vegetable khichdi, Coconut Chutney, Corn Flakes, Milk, Watermelon, Tea, Coffee, Omelette, Three Bean Salad",
-          bowldOver: "Fruit Bowl"
-        },
-        lunch: {
-          items: "Pudhina Butter Milk, Kimchi Salad, Butter chapati, Steamed Rice, Nei pappu (dal), Vendakkai karakulambu (bhindi), Karamani thoran, Sabudana Payasam, Rasam, Papad & Pickle",
-          bowldOver: "Sabudana vada and chutney (4 per person)",
-          navratriSpecial: "Sabudana vada and chutney (4 per person)"
-        },
-        snacks: {
-          items: "Tea, Coffee, Bhelpuri"
-        },
-        dinner: {
-          items: "Lemonade, Kosambari Salad, Chapati, Steamed Rice, Dal Panchmel, Chamandhi, Gobi capsicum masala, Fryums & Pickle, Rasam",
-          bowldOver: "Poori and potato masala (3 poori)",
-          delhicious: "Paneer kathi roll (1 no) / Veg Roll (1 no)"
-        }
+        date: "19-Oct",
+        breakfast: { items: "Idli, Sambar & Coconut Chutney, Poha, Sev & Onion, Cornflakes, Milk, Watermelon, Tea, Coffee, Omlette, Three Bean Salad", bowldOver: "No bowl" },
+        lunch: { items: "Butter Milk, Kosambari Salad, Tomato rice, Steamed Rice, Sambar, Malabar aviyal (mix veg), Keerai poriyal, Fryums & Pickle", bowldOver: "Poha and sev (400gms)" },
+        snacks: { items: "Tea, Coffee, Aloo chat" },
+        dinner: { items: "Lemon mint cooler, Kosambari Salad, Chapati, Steamed Rice, Dal Makhani, Veg saggu, Ridgegourd Masala, Fryums & Pickle, Ladoo (1 no)", bowldOver: "Khichdi with cucumber raita (400gms) / Paneer paratha roll", delhicious: "No special" }
       },
       "Tuesday": {
-        date: "13-Oct",
-        breakfast: {
-          items: "Pesarattu, Coconut Chutney, Aloo Paratha, Curd & pickle, Bread, Butter & Jam, Watermelon, Tea, Coffee, Boiled eggs, Sprouts Salad",
-          bowldOver: "Aloo Sandwich and Mango Sunrise"
-        },
-        lunch: {
-          items: "Curd, Green Salad, Butter chapati, Steamed Rice, Channa dal tadka, Ridge gourd Masala, Aloo mattar masala, Rasam, Papad & Pickle",
-          bowldOver: "Khichdi and cucumber raita (400 gms)"
-        },
-        snacks: {
-          items: "Tea, Coffee, Peanut Chaat"
-        },
-        dinner: {
-          items: "Rosemilk, Tossed salad, Tamarind rice, Podi Uttapam & plain Uttapam, Sambar & Tomato Chutney, Chole masala, Jeera rice, Papad & Pickle, Icecream",
-          bowldOver: "Two Set Dosa with sambar and tomato chutney and one vada",
-          delhicious: "Aloo Paratha & curd (2 no) / Set Dosa Chicken Curry (2 dosa, 120 gms gravy)"
-        }
+        date: "20-Oct",
+        breakfast: { items: "Semiya Upma, Tomato chutney, Mix Veg Paratha, Curd & Pickle, Chocos, Hot & Cold Milk, Watermelon, Tea, Coffee, Boiled Egg, Peanut Sundal", bowldOver: "No bowl" },
+        lunch: { items: "Fruit Punch, Green Salad, Chapati, Steamed Rice, Masoor dal, Kofta Makhani, Tendli dry fry, Papad & Pickle, Malli rasam", bowldOver: "Millet kichadi (400gms)" },
+        snacks: { items: "Tea, Coffee, Beach sundal" },
+        dinner: { items: "Lassi (no cardamom), Tiger salad, Chapati, Steamed Rice, Dal makhni, Black channa ki subzi, Pumpkin mattar masala, Fryums & Pickle, Ice cream", bowldOver: "Sabudhana khichdi (400gms) / Veg paratha roll", delhicious: "No special" }
       },
       "Wednesday": {
-        date: "14-Oct",
-        breakfast: {
-          items: "Semiya Upma, Coconut Chutney, Besan Chilla, Mint Chutney, Oats, Milk, Banana, Tea, Coffee, Boiled eggs, Black Chana Sundal",
-          bowldOver: "Fruit Bowl"
-        },
-        lunch: {
-          items: "NAVRATRI SPECIAL LUNCH: Chaas, Sev tamatar, Thepla, Steamed Rice, Kadhi khichdi, Potato curry, Basundhi (1 per person), Pickle",
-          bowldOver: "Sabudana khichdi and curd (400 gms)",
-          navratriSpecial: "Sabudana khichdi and curd (400 gms)"
-        },
-        snacks: {
-          items: "Tea, Coffee, Aloo chaat"
-        },
-        dinner: {
-          items: "Tiger salad, Butter chapati, Steamed Rice, Dal fry, Paneer Lababdar / Butter chicken, Veg jalfrezi, Fryums & Pickle",
-          bowldOver: "Idli, sambar, chutney (3 nos)",
-          delhicious: "Kerala Parotta & Paneer Curry / Chicken Curry (2 per person, 120 gms gravy)"
-        }
+        date: "21-Oct",
+        breakfast: { items: "Pesarattu, Coconut Chutney, Broken wheat upma, Tomato chutney, Bread, Butter & Jam, Banana, Tea, Coffee, Omlette, Chana Sundal", bowldOver: "Veg Kathi Roll and Lemon Mint Cooler" },
+        lunch: { items: "Butter Milk, Tiger salad, Chapati, Jeera rice, Chole masala, Aloo palak, Bhindi vepudu, Gulab jamun, Papad & Pickle", bowldOver: "Rajma chawal bowl (350gms)" },
+        snacks: { items: "Tea, Coffee, Coleslaw Sandwich and Cold Coffee" },
+        dinner: { items: "Lemonade, Black channa salad, Chapati, steamed rice, Dal tadka, Paneer makhanwala / Chicken makhanwala, Fryums & Pickle, Aloo bhujiya", bowldOver: "No bowl", delhicious: "Kerala Parotta Paneer/Chicken Curry (2pcs, 120gm gravy)" }
       },
       "Thursday": {
-        date: "15-Oct",
-        breakfast: {
-          items: "Rava Khichdi, Coconut Chutney, Poori, Aloo Subzi, Bread, Butter & Jam, Banana, Tea, Coffee, Omelette, Chana Sundal",
-          bowldOver: "Coleslaw Sandwich and Cold Coffee"
-        },
-        lunch: {
-          items: "Curd, Sprout Salad, Chapati, Steamed Rice, Dal maharani, Aloo palak, Tindli chatpata, Mysore Pak (1 per person), Papad & Pickle",
-          bowldOver: "Poha & sev & onion (400 gms)"
-        },
-        snacks: {
-          items: "Tea, Coffee, Three Bean Sundal"
-        },
-        dinner: {
-          items: "Fruit Punch, Green Salad, Butter chapati, Steamed Rice, Dal Makhani, Cabbage mattar masala, Raw Banana Chatpatta, Fryums & Pickle, Rasam, Kheer",
-          bowldOver: "Besan chilla with mint chutney (2 nos)",
-          delhicious: "Holiday Special"
-        }
+        date: "22-Oct",
+        breakfast: { items: "Pongal, Sambar & Peanut Chutney, Besan Chilla, Tamarind Chutney, Oats, Milk, Banana, Tea, Coffee, Boiled Egg, Black Chana Sundal", bowldOver: "Coleslaw Sandwich and Cold Coffee" },
+        lunch: { items: "Butter Milk, Sprout Salad, Butter Chapati, Steamed Rice, Palakura pappu (dal), Soya kurma, Balekai palya, Pineapple kesari, Papad & Pickle", bowldOver: "Chicken/Paneer chettinadu curry rice bowl (350gms)" },
+        snacks: { items: "Tea, Coffee, Bhel puri" },
+        dinner: { items: "Lemon mint cooler, Kachumber Salad, Chapati, Steamed Rice, Dhaba Dal, Methi malai mattar, Lasuni gobi fry, Fryums & Pickle, Ridgegourd halwa", bowldOver: "Shawarma rice bowl (paneer/chicken) (350gms)", delhicious: "Veg paratha roll / Aloo Paratha, curd, pickle" }
       },
       "Friday": {
-        date: "16-Oct",
-        breakfast: {
-          items: "Thalippu Idli, Sambar & Chutney, Mix Veg Paratha, Curd & pickle, Chocos, Hot & Cold Milk, Watermelon, Tea, Coffee, Boiled eggs, Peanut Sundal",
-          bowldOver: "Fruit Bowl"
-        },
-        lunch: {
-          items: "Neer mor, Crispy medu vada (1 per person), Steamed rice, Arachuvitta sambar, Milagu jeera rasam, Mix veg poriyal, Snakegourd kuttu, Okra stir fry, Semiya payasam, Papad & Pickle",
-          bowldOver: "Sabudana thalipeeth with coconut chutney (2 per person)",
-          navratriSpecial: "Sabudana thalipeeth with coconut chutney"
-        },
-        snacks: {
-          items: "Tea, Coffee, Veg Mayo Sandwich"
-        },
-        dinner: {
-          items: "Pudhina Butter Milk, Kosambari Salad, Butter chapati, Steamed Rice, Lobiya dal, Paneer tikka masala / Egg tikka masala, Aloo bhujiya, Pappu Podi (Dal Powder), Rasam, Papad & Pickle",
-          bowldOver: "Sweet potato patties with cucumber raitha",
-          delhicious: "Veg Roll (1 no)"
-        }
+        date: "23-Oct",
+        breakfast: { items: "Sweet and khara avalakki, Sev, Aloo Paratha, Curd & Pickle, Bread, Butter & Jam, Watermelon, Tea, Coffee, Omlette, Sprouts Salad", bowldOver: "Chutney Sandwich and Cold Coffee" },
+        lunch: { items: "Curd, Black channa salad, Butter Chapati, Steamed Rice, Dal maharani, Mirapakaya paneer gajala / egg gajala, plain Rasam, aloo jeera, Papad & Pickle", bowldOver: "No bowl" },
+        snacks: { items: "Tea, Coffee, Sweet potato masala" },
+        dinner: { items: "Nannari Sarbath, Butter Chapathi, Set dosa, Greengram Gojju, Sambar & pudhina chutney, Podi idli, Ice cream", bowldOver: "Veg thukpa / Chicken thukpa (noodlesoup 400gms)", delhicious: "Idli chicken curry (3 pcs, 120gms)" }
       },
       "Saturday": {
-        date: "17-Oct",
-        breakfast: {
-          items: "Set dosa, Sambar & Coconut Chutney, Poha, Sev & onion, Cornflakes, Milk, Banana, Tea, Coffee, Boiled eggs, Red Beans Salad",
-          bowldOver: "Chutney Sandwich and Cold Coffee"
-        },
-        lunch: {
-          items: "Buttermilk, Kachumber Salad, Butter chapati, Steamed Rice, Dal Ambat, veg kurma, Chow Chow Palya, Semiya Payasam, Papad & Pickle",
-          bowldOver: "Sabudana vada and chutney (4 per person)",
-          navratriSpecial: "Sabudana vada and chutney (4 per person)"
-        },
-        snacks: {
-          items: "Tea, Coffee, Veg burger"
-        },
-        dinner: {
-          items: "Nannari Sarbath, Green Salad, Chapati, Steamed Rice, Dhaba Dal, Malai Kofta, Lauki Matar Masala, Fryums & Pickle, Rasam",
-          bowldOver: "Idli and veg kurma (3 nos)",
-          delhicious: "Idli Chicken Curry (3 per person, 120 gms gravy) / Set Dosa Chicken Curry"
-        }
+        date: "24-Oct",
+        breakfast: { items: "Bisibele bath, Cucumber raita, Poori, Aloo subzi, Cornflakes, Milk, Banana, Tea, Coffee, Boiled Egg, Red Beans Salad", bowldOver: "Vada Pav and orange blossom" },
+        lunch: { items: "Fruit Punch, Tiger salad, Chapati, Corn Pulao, Lobiya dal, Kadhai veg, Cucumber raita, Fryums & Pickle, sooji ka halwa", bowldOver: "Peri peri rice with garlic paneer (350gms)" },
+        snacks: { items: "Tea, Coffee, Veg Mayo Sandwich" },
+        dinner: { items: "Butter Milk, Exotic salad, Chapati, Steamed Rice, Dal Panchmel, Aloo bhindi masala (dry), Kala channa ki subzi, Fryums & Pickle", bowldOver: "No bowl", delhicious: "Masala Dosa with vada, sambar, coconut chutney (1 dosa, 1 vada)" }
       },
       "Sunday": {
-        date: "18-Oct",
-        breakfast: {
-          items: "Pancake, Honey, Mini Vada (2 per person), Coconut chutney, Watermelon, Tea, Coffee, Omelette, Veg Protein Salad",
-          bowldOver: "Fruit Bowl"
-        },
-        lunch: {
-          items: "Lemon mint cooler, Cucumber Raita, Paneer dum biryani, Chicken dum biriyani, Moong dal payasam, Raw mango pickle",
-          bowldOver: "Sabudhana khichdi and curd (400 gms)",
-          navratriSpecial: "Sabudhana khichdi and curd (400 gms)"
-        },
-        snacks: {
-          items: "Tea, Coffee, Vada (2 per person)"
-        },
-        dinner: {
-          items: "Lassi (No Cardamom), Kachumber Salad, Butter chapati, Steamed Rice, Methi Dal, Cabbage beans masala, Kurkure Bhindi, Fryums & Pickle, Rasam",
-          bowldOver: "Sabudhana thalipeeth with coconut chutney (2 nos)",
-          delhicious: "Masala dosa & vada, sambar and chutney (1 piece each)"
-        }
+        date: "25-Oct",
+        breakfast: { items: "Kal dosa, Sambar & chutney, Mini vada, Coconut Chutney, Watermelon, Tea, Coffee, Omlette, Veg Protein Salad", bowldOver: "No bowl" },
+        lunch: { items: "Lemon mint cooler, Cucumber Raita, Veg biriyani, Paneer tikka, Kolkata Chicken Biryani, Raw mango pickle", bowldOver: "No bowl" },
+        snacks: { items: "Tea, Coffee, Veg Burger" },
+        dinner: { items: "Lassi (No Cardamom), Mexican salad, Chapati, Steamed Rice, Tomato dal, Soya capsicum makhani, Methi pumpkin palya, Fryums & Pickle, moong dal payasam", bowldOver: "Soyakeema dosa (1 nos)", delhicious: "Set Dosa Chicken Curry (2 pcs, 120gms gravy)" }
       }
     };
 
+    // Preloaded Week 5 Schedule (accurately placed on Oct 23, 24, 25 for enrolled sections)
     const SEED_SCHEDULE = [
       {
-        id: "sch-1",
-        date: "2026-10-12",
-        dayName: "Monday",
-        subject: "Marketing Metrics",
-        slot: "Slot 2",
-        time: "09:15 - 11:15",
-        startMin: 555,
-        endMin: 675,
-        venue: "Lake Dal",
-        instructor: "Dr. D. Sriram",
-        section: "Regular",
-        sessionNum: "Session [6]"
-      },
-      {
-        id: "sch-2",
-        date: "2026-10-12",
-        dayName: "Monday",
-        subject: "Scaling New Ventures",
-        slot: "Slot 5",
-        time: "15:45 - 17:15",
-        startMin: 945,
-        endMin: 1035,
-        venue: "Shri Shankaran Hall",
-        instructor: "Dr. Subrat Sarangi",
-        section: "Regular",
-        sessionNum: "Session [4]"
-      },
-      {
-        id: "sch-3",
-        date: "2026-10-13",
-        dayName: "Tuesday",
-        subject: "Managing Global Teams",
-        slot: "Slot 7",
-        time: "19:30 - 21:00",
-        startMin: 1170,
-        endMin: 1260,
-        venue: "Shri Shankaran Hall",
-        instructor: "Prof. C B Mohan",
-        section: "Section 1",
-        sessionNum: "Session [3] (Section 1)"
-      },
-      {
-        id: "sch-4",
-        date: "2026-10-14",
-        dayName: "Wednesday",
-        subject: "Scaling New Ventures",
-        slot: "Slot 5",
-        time: "15:45 - 17:15",
-        startMin: 945,
-        endMin: 1035,
-        venue: "Shri Shankaran Hall",
-        instructor: "Dr. Subrat Sarangi",
-        section: "Regular",
-        sessionNum: "Session [5]"
-      },
-      {
-        id: "sch-5",
-        date: "2026-10-14",
-        dayName: "Wednesday",
-        subject: "Managing Global Teams",
-        slot: "Slot 7",
-        time: "19:30 - 21:00",
-        startMin: 1170,
-        endMin: 1260,
-        venue: "Shri Shankaran Hall",
-        instructor: "Prof. C B Mohan",
-        section: "Section 1",
-        sessionNum: "Session [4] (Section 1)"
-      },
-      {
-        id: "sch-6",
-        date: "2026-10-15",
-        dayName: "Thursday",
-        subject: "Managing Global Teams",
-        slot: "Slot 6",
-        time: "17:45 - 19:15",
-        startMin: 1065,
-        endMin: 1155,
-        venue: "Shri Shankaran Hall",
-        instructor: "Prof. C B Mohan",
-        section: "Section 1",
-        sessionNum: "Session [5] (Section 1)"
-      },
-      {
-        id: "sch-7",
-        date: "2026-10-16",
+        id: "sch-w5-1",
+        date: "2026-10-23",
         dayName: "Friday",
-        subject: "Marketing Metrics",
+        subject: "Marketing Analytics",
+        slot: "Slot 3",
+        time: "11:15 - 13:15",
+        startMin: 675,
+        endMin: 795,
+        venue: "Shri Shankaran Hall",
+        instructor: "Prof. Raghavshyam Ramamurthy",
+        section: "Section 2",
+        sessionNum: "Session [3] (Section 2)"
+      },
+      {
+        id: "sch-w5-2",
+        date: "2026-10-24",
+        dayName: "Saturday",
+        subject: "Marketing Analytics",
+        slot: "Slot 2",
+        time: "09:00 - 11:00",
+        startMin: 540,
+        endMin: 660,
+        venue: "Shri Shankaran Hall",
+        instructor: "Prof. Raghavshyam Ramamurthy",
+        section: "Section 2",
+        sessionNum: "Session [4] (Section 2)"
+      },
+      {
+        id: "sch-w5-3",
+        date: "2026-10-24",
+        dayName: "Saturday",
+        subject: "IT for Managers",
         slot: "Slot 4",
         time: "14:00 - 15:30",
         startMin: 840,
         endMin: 930,
-        venue: "Lake Dal",
-        instructor: "Dr. D. Sriram",
-        section: "Regular",
-        sessionNum: "Session [7]"
+        venue: "Lake Mansarovar",
+        instructor: "Prof. Meera Krishnan",
+        section: "Section 2",
+        sessionNum: "Session [9] (Section 2)"
       },
       {
-        id: "sch-8",
-        date: "2026-10-16",
-        dayName: "Friday",
-        subject: "Managing Global Teams",
-        slot: "Slot 7",
-        time: "19:30 - 21:00",
-        startMin: 1170,
-        endMin: 1260,
-        venue: "Shri Shankaran Hall",
-        instructor: "Prof. C B Mohan",
-        section: "Section 1",
-        sessionNum: "Session [6] (Section 1)"
+        id: "sch-w5-4",
+        date: "2026-10-24",
+        dayName: "Saturday",
+        subject: "IT for Managers",
+        slot: "Slot 5",
+        time: "15:45 - 17:15",
+        startMin: 945,
+        endMin: 1035,
+        venue: "Lake Mansarovar",
+        instructor: "Prof. Meera Krishnan",
+        section: "Section 2",
+        sessionNum: "Session [10] (Section 2)"
+      },
+      {
+        id: "sch-w5-5",
+        date: "2026-10-25",
+        dayName: "Sunday",
+        subject: "IT for Managers",
+        slot: "Slot 4",
+        time: "14:00 - 15:30",
+        startMin: 840,
+        endMin: 930,
+        venue: "Lake Mansarovar",
+        instructor: "Prof. Meera Krishnan",
+        section: "Section 2",
+        sessionNum: "Session [11] (Section 2)"
+      },
+      {
+        id: "sch-w5-6",
+        date: "2026-10-25",
+        dayName: "Sunday",
+        subject: "IT for Managers",
+        slot: "Slot 5",
+        time: "15:45 - 17:15",
+        startMin: 945,
+        endMin: 1035,
+        venue: "Lake Mansarovar",
+        instructor: "Prof. Meera Krishnan",
+        section: "Section 2",
+        sessionNum: "Session [12] (Section 2)"
       }
     ];
 
-    const KEY_SCHEDULE = "mba_schedule_v5_gantt";
-    const KEY_TASKS = "mba_tasks_v5_gantt";
+    const KEY_SCHEDULE = "mba_schedule_v6_fullweek";
+    const KEY_TASKS = "mba_tasks_v6_fullweek";
 
     let scheduleData = JSON.parse(localStorage.getItem(KEY_SCHEDULE) || "null") || SEED_SCHEDULE;
     let selectedFilterSubject = "All";
     let activeMessDay = "Monday";
-    let activeScheduleView = "calendar"; // 'calendar' or 'list'
+    let activeScheduleView = "calendar";
+    let weekOffset = 0; // 0 = current week, +1 = next week, -1 = prev week
     let pendingUploadSessions = [];
 
     let tasksData = JSON.parse(localStorage.getItem(KEY_TASKS) || "null") || [
-      { id: "t-1", subject: "Managing Global Teams", title: "Read HBR Case: Managing Virtual Cross-Border Teams (Sec 1)", dueDate: "2026-10-14", priority: "High", completed: false },
-      { id: "t-2", subject: "Scaling New Ventures", title: "Review Lean Canvas Pitch Deck for Dr. Subrat Sarangi", dueDate: "2026-10-14", priority: "High", completed: false },
-      { id: "t-3", subject: "Marketing Metrics", title: "Calculate CLV and ROMI assignment exercises", dueDate: "2026-10-16", priority: "Medium", completed: false }
+      { id: "t-1", subject: "Marketing Analytics", title: "Prepare Conjoint Analysis Case for Prof. Raghavshyam (Sec 2)", dueDate: "2026-10-23", priority: "High", completed: false },
+      { id: "t-2", subject: "IT for Managers", title: "Read Enterprise Architecture Case Studies Sessions 9-12 (Sec 2)", dueDate: "2026-10-24", priority: "High", completed: false }
     ];
 
     // Helper: Parse HH:MM string to minutes since midnight
@@ -991,17 +890,54 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
 
     // Helper: Extract range "09:15 - 11:15" to { start, end }
     function parseRangeToMinutes(rangeStr) {
-      if (!rangeStr) return { start: 480, end: 570 }; // default 8:00 - 9:30
+      if (!rangeStr) return { start: 540, end: 630 };
       const split = rangeStr.split('-');
       if (split.length >= 2) {
-        let s = split[0].trim();
-        let e = split[1].trim();
-        // Remove trailing 'Hrs' etc
-        s = s.replace(/[^0-9:]/g, '');
-        e = e.replace(/[^0-9:]/g, '');
+        let s = split[0].trim().replace(/[^0-9:]/g, '');
+        let e = split[1].trim().replace(/[^0-9:]/g, '');
         return { start: parseTimeToMinutes(s), end: parseTimeToMinutes(e) };
       }
-      return { start: 480, end: 570 };
+      return { start: 540, end: 630 };
+    }
+
+    // Helper: Format Date to YYYY-MM-DD
+    function formatDateISO(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Helper: Get Monday to Sunday dates for any given reference date & offset
+    function getWeekDays(referenceDate, offsetWeeks = 0) {
+      const curr = new Date(referenceDate);
+      curr.setDate(curr.getDate() + (offsetWeeks * 7));
+
+      // Day of week: 0 is Sunday, 1 is Monday... 6 is Saturday
+      const dayOfWeek = curr.getDay();
+      // Distance to Monday: if day is Sunday (0), distance is -6; else 1 - dayOfWeek
+      const diffToMonday = (dayOfWeek === 0) ? -6 : (1 - dayOfWeek);
+
+      const monday = new Date(curr);
+      monday.setDate(curr.getDate() + diffToMonday);
+
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        days.push(formatDateISO(d));
+      }
+      return days;
+    }
+
+    function changeWeek(delta) {
+      weekOffset += delta;
+      renderSchedule();
+    }
+
+    function resetToCurrentWeek() {
+      weekOffset = 0;
+      renderSchedule();
     }
 
     function updateGreetingAndDate() {
@@ -1119,12 +1055,12 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
     function renderStats() {
       document.getElementById('stat-total-classes').textContent = scheduleData.length;
 
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = formatDateISO(new Date());
       const todayLectures = scheduleData.filter(s => s.date === todayStr);
       document.getElementById('stat-today-classes').textContent = todayLectures.length;
 
       const dayOfWeek = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-      const menuToday = MESS_WEEK_MENU[dayOfWeek] || MESS_WEEK_MENU['Wednesday'];
+      const menuToday = MESS_WEEK_MENU[dayOfWeek] || MESS_WEEK_MENU['Friday'];
 
       document.getElementById('stat-bowld-special').textContent = menuToday.lunch.bowldOver || menuToday.breakfast.bowldOver;
       document.getElementById('stat-dinner-special').textContent = menuToday.dinner.delhicious || menuToday.dinner.bowldOver;
@@ -1167,7 +1103,7 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
       }
 
       const todayDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-      const messToday = MESS_WEEK_MENU[todayDay] || MESS_WEEK_MENU['Wednesday'];
+      const messToday = MESS_WEEK_MENU[todayDay] || MESS_WEEK_MENU['Friday'];
       const messBox = document.getElementById('dashboard-today-mess-content');
 
       messBox.innerHTML = `
@@ -1244,7 +1180,7 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
       renderSchedule();
     }
 
-    // ================= GOOGLE CALENDAR / GANTT TIME-GRID RENDERER =================
+    // ================= FULL 7-DAY (MON-SUN) GOOGLE CALENDAR / GANTT TIME-GRID =================
     function renderSchedule() {
       if (activeScheduleView === 'calendar') {
         renderGanttCalendar();
@@ -1260,18 +1196,24 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
         filtered = scheduleData.filter(s => s.subject === selectedFilterSubject);
       }
 
-      // Collect all unique dates in the schedule, or default to current week
-      const dateSet = new Set(filtered.map(s => s.date));
-      let sortedDates = Array.from(dateSet).sort();
-      if (sortedDates.length === 0) {
-        sortedDates = ["2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16"];
+      // Compute exact 7 days: Monday through Sunday for current weekOffset
+      const today = new Date();
+      const weekDates = getWeekDays(today, weekOffset);
+
+      // Update Week Label
+      const monDate = new Date(weekDates[0]);
+      const sunDate = new Date(weekDates[6]);
+      const monStr = monDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const sunStr = sunDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const weekLabel = document.getElementById('current-week-label');
+      if (weekLabel) {
+        weekLabel.textContent = `${monStr} – ${sunStr}` + (weekOffset === 0 ? " (This Week)" : weekOffset === 1 ? " (Next Week)" : "");
       }
 
       // Time range: 08:00 (480 min) to 22:00 (1320 min)
-      // 14 hours total. Each hour = 60px height. Total height = 14 * 60 = 840px
       const START_HOUR = 8;
       const END_HOUR = 22;
-      const HOUR_HEIGHT = 65; // px per hour
+      const HOUR_HEIGHT = 64; // px per hour
       const TOTAL_HOURS = END_HOUR - START_HOUR;
 
       const hourLabels = [];
@@ -1280,15 +1222,16 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
         hourLabels.push({ hour: h, label: hh });
       }
 
-      // Render calendar layout
+      const todayStr = formatDateISO(new Date());
+
       container.innerHTML = `
         <div class="glass-card rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
           <!-- Calendar Subheader Info -->
           <div class="p-4 bg-slate-900/80 border-b border-slate-800/80 flex items-center justify-between flex-wrap gap-2 text-xs">
             <div class="flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
-              <span class="font-bold text-white">Google Calendar Time Grid</span>
-              <span class="text-slate-400">(08:00 to 22:00 Daily)</span>
+              <span class="font-bold text-white">Full Week View (Monday – Sunday)</span>
+              <span class="text-slate-400 font-mono">(08:00 – 22:00 IST)</span>
             </div>
             <div class="flex items-center gap-3 text-[11px] text-slate-400">
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Class Slot</span>
@@ -1299,33 +1242,39 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
 
           <!-- Horizontal scrollable Gantt grid -->
           <div class="overflow-x-auto">
-            <div class="min-w-[850px] flex flex-col">
+            <div class="min-w-[960px] flex flex-col">
               
-              <!-- Column Headers (Days) -->
-              <div class="flex border-b border-slate-800 bg-slate-950/70 sticky top-0 z-10">
+              <!-- Column Headers (Monday to Sunday) -->
+              <div class="flex border-b border-slate-800 bg-slate-950/80 sticky top-0 z-10">
                 <!-- Time gutter header -->
                 <div class="w-20 flex-shrink-0 p-3 text-center text-[10px] font-bold text-slate-500 border-r border-slate-800 uppercase tracking-wider">
-                  GMT+05:30
+                  TIME
                 </div>
-                <!-- Day columns headers -->
-                <div class="flex-1 grid grid-cols-${sortedDates.length} divide-x divide-slate-800">
-                  ${sortedDates.map(dStr => {
+                <!-- 7 Day Columns -->
+                <div class="flex-1 grid grid-cols-7 divide-x divide-slate-800/80">
+                  ${weekDates.map(dStr => {
                     const dObj = new Date(dStr);
                     const dayName = dObj.toLocaleDateString('en-US', { weekday: 'short' });
                     const dayNum = dStr.split('-')[2];
+                    const isToday = (dStr === todayStr);
                     const count = filtered.filter(s => s.date === dStr).length;
+
                     return `
-                      <div class="p-3 text-center">
-                        <div class="text-[11px] font-extrabold uppercase text-indigo-400 tracking-wider">${dayName}</div>
+                      <div class="p-3 text-center ${isToday ? 'bg-indigo-950/30' : ''}">
+                        <div class="text-[11px] font-extrabold uppercase ${isToday ? 'text-amber-400 font-bold' : 'text-indigo-400'} tracking-wider">
+                          ${dayName} ${isToday ? '<span class="text-[9px] px-1 bg-amber-500/20 text-amber-300 rounded">TODAY</span>' : ''}
+                        </div>
                         <div class="text-base font-black text-white mt-0.5">${dayNum}</div>
-                        <div class="text-[10px] text-slate-400 font-mono mt-0.5">${count} class${count !== 1 ? 'es' : ''}</div>
+                        <div class="text-[10px] ${count > 0 ? 'text-emerald-400 font-bold' : 'text-slate-500'} font-mono mt-0.5">
+                          ${count > 0 ? `${count} class${count !== 1 ? 'es' : ''}` : 'No classes'}
+                        </div>
                       </div>
                     `;
                   }).join('')}
                 </div>
               </div>
 
-              <!-- Grid Body: Time gutter + Day Columns with relative events -->
+              <!-- Grid Body: Time gutter + 7 Day Columns with relative events -->
               <div class="flex relative" style="height: ${TOTAL_HOURS * HOUR_HEIGHT}px;">
                 
                 <!-- Left Hour Gutter -->
@@ -1337,8 +1286,8 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
                   `).join('')}
                 </div>
 
-                <!-- Day Columns with background grid lines -->
-                <div class="flex-1 grid grid-cols-${sortedDates.length} divide-x divide-slate-800 relative">
+                <!-- 7 Day Columns with background grid lines -->
+                <div class="flex-1 grid grid-cols-7 divide-x divide-slate-800/80 relative">
                   
                   <!-- Horizontal Hour Guideline overlays -->
                   <div class="absolute inset-0 pointer-events-none flex flex-col justify-between">
@@ -1347,42 +1296,43 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
                     `).join('')}
                   </div>
 
-                  <!-- Actual Day Columns containing event blocks -->
-                  ${sortedDates.map(dStr => {
+                  <!-- 7 Day Event Columns -->
+                  ${weekDates.map(dStr => {
                     const dayEvents = filtered.filter(s => s.date === dStr);
+                    const isToday = (dStr === todayStr);
+
                     return `
-                      <div class="relative h-full p-1.5">
+                      <div class="relative h-full p-1.5 ${isToday ? 'bg-indigo-950/10' : ''}">
                         ${dayEvents.map(ev => {
                           const range = parseRangeToMinutes(ev.time);
                           const startM = ev.startMin || range.start;
                           const endM = ev.endMin || range.end;
 
-                          // Calculate top & height in px
                           const topPx = Math.max(0, ((startM - (START_HOUR * 60)) / 60) * HOUR_HEIGHT);
-                          const heightPx = Math.max(48, (((endM - startM)) / 60) * HOUR_HEIGHT);
+                          const heightPx = Math.max(52, (((endM - startM)) / 60) * HOUR_HEIGHT);
 
                           const theme = SUBJECT_THEMES[ev.subject] || { barBg: "bg-indigo-600/20 border-indigo-500/40 text-indigo-200", badge: "bg-indigo-500/15" };
 
                           return `
-                            <div class="absolute left-1.5 right-1.5 rounded-xl border p-2 shadow-lg transition-all hover:scale-[1.02] hover:z-20 cursor-pointer overflow-hidden flex flex-col justify-between ${theme.barBg}"
+                            <div class="absolute left-1 right-1 rounded-xl border p-2 shadow-xl transition-all hover:scale-[1.03] hover:z-30 cursor-pointer overflow-hidden flex flex-col justify-between ${theme.barBg}"
                                  style="top: ${topPx}px; height: ${heightPx}px;"
                                  onclick="createTaskForSubject('${ev.subject}', '${ev.date}')"
-                                 title="${ev.subject} | ${ev.time} | ${ev.venue} (${ev.instructor}) - Click to add prep task">
+                                 title="${ev.subject} | ${ev.time} | ${ev.venue} (${ev.instructor}) - Click to add task">
                               
                               <div class="min-w-0">
                                 <div class="flex items-center justify-between gap-1 leading-none mb-1">
-                                  <span class="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-white">
+                                  <span class="text-[9px] font-mono font-black px-1.5 py-0.5 rounded bg-black/50 border border-white/10 text-white truncate">
                                     ${ev.time}
                                   </span>
-                                  ${ev.section && ev.section !== 'Regular' ? `<span class="text-[9px] font-mono font-bold px-1 rounded bg-amber-400/20 text-amber-300">${ev.section}</span>` : ''}
+                                  ${ev.section && ev.section !== 'Regular' ? `<span class="text-[8px] font-mono font-bold px-1 rounded bg-amber-400/20 text-amber-300 flex-shrink-0">${ev.section}</span>` : ''}
                                 </div>
                                 <h5 class="text-xs font-black truncate leading-tight">${ev.subject}</h5>
-                                <p class="text-[10px] opacity-80 truncate mt-0.5">${ev.venue} &bull; ${ev.instructor}</p>
+                                <p class="text-[10px] opacity-80 truncate mt-0.5">${ev.venue}</p>
                               </div>
 
-                              <div class="flex items-center justify-between text-[9px] opacity-75 pt-1 border-t border-white/10 mt-1">
-                                <span class="font-mono">${ev.sessionNum || ev.slot}</span>
-                                <span class="hover:underline">+ Task</span>
+                              <div class="flex items-center justify-between text-[9px] opacity-80 pt-1 border-t border-white/10 mt-1">
+                                <span class="truncate font-mono">${ev.instructor ? ev.instructor.split(' ')[0] : ''}</span>
+                                <span class="hover:underline text-indigo-300 flex-shrink-0">+ Task</span>
                               </div>
                             </div>
                           `;
@@ -1499,7 +1449,7 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
       }).join('');
 
       const viewContainer = document.getElementById('mess-day-view-container');
-      const data = MESS_WEEK_MENU[activeMessDay] || MESS_WEEK_MENU['Monday'];
+      const data = MESS_WEEK_MENU[activeMessDay] || MESS_WEEK_MENU['Friday'];
 
       viewContainer.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1598,8 +1548,8 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
       const subjectDetails = [
         { name: "Managing Global Teams", code: "MGT-505", faculty: "Prof. C B Mohan", mySection: "Section 1", desc: "Cross-cultural management, virtual team collaboration, conflict negotiation and global leadership." },
         { name: "Negotiation and Bargaining", code: "NAB-506", faculty: "Faculty Coordinator", mySection: "Section 1", desc: "Distributive & integrative bargaining, BATNA analysis, psychological anchoring and multi-party deal structuring." },
-        { name: "Marketing Analytics", code: "MKA-503", faculty: "Faculty Coordinator", mySection: "Section 2", desc: "Customer segmentation, conjoint analysis, regression models, churn prediction and LTV modeling." },
-        { name: "IT for Managers", code: "ITM-507", faculty: "Faculty Coordinator", mySection: "Section 2", desc: "Enterprise architecture, digital transformation, cloud frameworks, and technology strategy for executives." },
+        { name: "Marketing Analytics", code: "MKA-503", faculty: "Prof. Raghavshyam Ramamurthy", mySection: "Section 2", desc: "Customer segmentation, conjoint analysis, regression models, churn prediction and LTV modeling." },
+        { name: "IT for Managers", code: "ITM-507", faculty: "Prof. Meera Krishnan", mySection: "Section 2", desc: "Enterprise architecture, digital transformation, cloud frameworks, and technology strategy for executives." },
         { name: "Scaling New Ventures", code: "SNV-501", faculty: "Dr. Subrat Sarangi", mySection: "Enrolled", desc: "Lean startups, business model canvas, growth scaling, venture capital and investor pitch preparation." },
         { name: "Designing Employer Branding Campaigns", code: "EBC-502", faculty: "Faculty Coordinator", mySection: "Enrolled", desc: "Talent acquisition strategy, employer value proposition (EVP), campaign analytics and internal branding." },
         { name: "Marketing Metrics", code: "MKM-504", faculty: "Dr. D. Sriram", mySection: "Enrolled", desc: "Return on Marketing Investment (ROMI), Customer Acquisition Cost (CAC), market share dynamics." }
@@ -1741,13 +1691,15 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
         if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.md')) {
           const text = e.target.result;
           rows = parseCSVorMarkdown(text);
+          // Also automatically check if this file contains mess menu rows
+          detectAndParseEmbeddedMessMenu(rows);
         } else {
-          // Excel XLSX / XLS
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           const firstSheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[firstSheetName];
           rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+          detectAndParseEmbeddedMessMenu(rows);
         }
         processUploadedRows(rows, file.name);
       };
@@ -1763,13 +1715,11 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
       const lines = text.split(/\r\n|\n/);
       return lines.map(line => {
         let trimmed = line.trim();
-        // Check if markdown table row | col1 | col2 |
         if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
           trimmed = trimmed.substring(1, trimmed.length - 1);
           return trimmed.split('|').map(c => c.trim());
         }
 
-        // Standard CSV
         const result = [];
         let curr = '';
         let inQuotes = false;
@@ -1809,6 +1759,7 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
         if (!row || row.length === 0) continue;
 
         const firstCell = String(row[0] || '').trim();
+        // Match standard YYYY-MM-DD
         if (firstCell.match(/^\d{4}-\d{2}-\d{2}$/)) {
           currentDate = firstCell;
         }
@@ -1839,14 +1790,22 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
               const sessionNum = sessionMatch ? `Session [${sessionMatch[1]}]` : 'Scheduled Session';
               const instructor = lines.length > 1 ? lines[1].trim() : 'Course Instructor';
 
+              // Extract custom time if embedded like "(11:15 Hrs - 13:15 Hrs)" or "9:00 - 11:00"
+              let timeString = defaultSlots[c] || "14:00 - 15:30";
+              const timeMatch = cellText.match(/(\d{1,2}:\d{2})\s*(?:Hrs)?\s*[-–]\s*(\d{1,2}:\d{2})\s*(?:Hrs)?/i);
+              if (timeMatch) {
+                const startClean = timeMatch[1].padStart(5, '0');
+                const endClean = timeMatch[2].padStart(5, '0');
+                timeString = `${startClean} - ${endClean}`;
+              }
+
               const dObj = new Date(currentDate);
               const dayName = currentDate ? dObj.toLocaleDateString('en-US', { weekday: 'long' }) : 'Scheduled Day';
-              const timeString = defaultSlots[c] || "14:00 - 15:30";
               const range = parseRangeToMinutes(timeString);
 
               pendingUploadSessions.push({
                 id: "up-" + Date.now() + Math.random().toString(36).substr(2, 4),
-                date: currentDate || new Date().toISOString().split('T')[0],
+                date: currentDate || formatDateISO(new Date()),
                 dayName: dayName,
                 subject: subjectName,
                 slot: `Slot ${c - 1}`,
@@ -1882,7 +1841,7 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
         previewList.innerHTML = pendingUploadSessions.map(s => `
           <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
             <div>
-              <span class="font-bold text-white">${s.subject}</span> &bull; <span class="text-indigo-400">${s.date} (${s.time})</span>
+              <span class="font-bold text-white">${s.subject}</span> &bull; <span class="text-indigo-400 font-mono">${s.date} (${s.time})</span>
               <p class="text-[11px] text-slate-400">${s.venue} &bull; ${s.instructor} &bull; <span class="text-amber-300 font-semibold">${s.section}</span></p>
             </div>
             <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Enrolled Section</span>
@@ -1891,11 +1850,80 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
       }
     }
 
+    // Detect if uploaded file also has a mess menu table at the bottom (like user's file)
+    function detectAndParseEmbeddedMessMenu(rows) {
+      let dayHeaderRowIdx = -1;
+      let dayColIndices = {};
+      const dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row) continue;
+        let foundDays = 0;
+        for (let c = 0; c < row.length; c++) {
+          const val = String(row[c] || '').toLowerCase().trim();
+          if (dayNames.includes(val)) {
+            foundDays++;
+          }
+        }
+        if (foundDays >= 4) {
+          dayHeaderRowIdx = r;
+          for (let c = 0; c < row.length; c++) {
+            const val = String(row[c] || '').toLowerCase().trim();
+            for (const d of dayNames) {
+              if (val === d) {
+                const properDay = d.charAt(0).toUpperCase() + d.slice(1);
+                dayColIndices[c] = properDay;
+              }
+            }
+          }
+          break;
+        }
+      }
+
+      if (dayHeaderRowIdx !== -1) {
+        let currentMeal = '';
+        for (let r = dayHeaderRowIdx + 1; r < rows.length; r++) {
+          const row = rows[r];
+          if (!row) continue;
+          const label = String(row[0] || '').trim();
+          const labelUpper = label.toUpperCase();
+
+          if (labelUpper.includes('BREAKFAST') && !labelUpper.includes('BOWLD')) currentMeal = 'BREAKFAST';
+          else if (labelUpper.includes('LUNCH') && !labelUpper.includes('BOWLD')) currentMeal = 'LUNCH';
+          else if (labelUpper.includes('SNACKS')) currentMeal = 'SNACKS';
+          else if (labelUpper.includes('DINNER') && !labelUpper.includes('BOWLD') && !labelUpper.includes('DELHICIOUS')) currentMeal = 'DINNER';
+          else if (labelUpper.includes('BOWLD OVER BREAKFAST')) currentMeal = 'BOWLD_BREAKFAST';
+          else if (labelUpper.includes('BOWLD OVER LUNCH')) currentMeal = 'BOWLD_LUNCH';
+          else if (labelUpper.includes('BOWLD OVER DINNER')) currentMeal = 'BOWLD_DINNER';
+          else if (labelUpper.includes('DELHICIOUS DINNER')) currentMeal = 'DELHICIOUS_DINNER';
+
+          Object.keys(dayColIndices).forEach(colIdx => {
+            const dayName = dayColIndices[colIdx];
+            const itemText = String(row[colIdx] || '').trim();
+            if (itemText && MESS_WEEK_MENU[dayName]) {
+              if (currentMeal === 'BOWLD_BREAKFAST') {
+                MESS_WEEK_MENU[dayName].breakfast.bowldOver = itemText;
+              } else if (currentMeal === 'BOWLD_LUNCH') {
+                MESS_WEEK_MENU[dayName].lunch.bowldOver = itemText;
+              } else if (currentMeal === 'BOWLD_DINNER') {
+                MESS_WEEK_MENU[dayName].dinner.bowldOver = itemText;
+              } else if (currentMeal === 'DELHICIOUS_DINNER') {
+                MESS_WEEK_MENU[dayName].dinner.delhicious = itemText;
+              }
+            }
+          });
+        }
+        localStorage.setItem('mba_mess_menu_v6', JSON.stringify(MESS_WEEK_MENU));
+      }
+    }
+
     function applyUploadedSchedule() {
       if (pendingUploadSessions.length > 0) {
+        // Merge or replace scheduleData
         scheduleData = pendingUploadSessions;
         localStorage.setItem(KEY_SCHEDULE, JSON.stringify(scheduleData));
-        alert(`Success! Updated schedule with ${pendingUploadSessions.length} sessions matching your sections.`);
+        alert(`Success! Updated schedule with ${pendingUploadSessions.length} sessions strictly for your enrolled sections.`);
         switchTab('schedule');
       }
     }
@@ -1917,7 +1945,6 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
           console.error(err);
         }
       } else {
-        // Text / Markdown / CSV
         const reader = new FileReader();
         reader.onload = function(e) {
           parseAndApplyMenuText(e.target.result, file.name);
@@ -1954,12 +1981,10 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
       const lines = text.split(/\r\n|\n/);
       let currentDay = null;
 
-      // Scan text for daily meal patterns
       lines.forEach(rawLine => {
         const line = rawLine.trim();
         if (!line) return;
 
-        // Check if line is a day header
         for (const d of days) {
           if (line.toLowerCase().includes(d.toLowerCase())) {
             currentDay = d;
@@ -1987,7 +2012,7 @@ Delhicious: Paneer Kathi Roll" class="w-full bg-slate-950 border border-slate-70
         }
       });
 
-      localStorage.setItem('mba_mess_menu_v5', JSON.stringify(MESS_WEEK_MENU));
+      localStorage.setItem('mba_mess_menu_v6', JSON.stringify(MESS_WEEK_MENU));
       alert(`Mess menu updated successfully from: ${sourceName}`);
       renderAll();
       switchTab('mess');
